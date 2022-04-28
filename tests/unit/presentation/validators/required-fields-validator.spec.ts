@@ -15,6 +15,21 @@ describe("Unit", () => {
         // THEN
         expect(error).toEqual(new MissingParamError(fieldName));
       });
+
+      it("Should return null if all required fields were provided", async () => {
+        // GIVEN
+        const fields = ["any-field", "any-field-2"];
+        const validator = new RequiredFieldsValidator(fields);
+
+        // WHEN
+        const error = validator.validate({
+          [fields[0]]: "valid-field",
+          [fields[1]]: "valid-field",
+        });
+
+        // THEN
+        expect(error).toBeFalsy();
+      });
     });
   });
 });
