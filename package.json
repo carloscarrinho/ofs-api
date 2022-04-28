@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/fidelapi-challenges/be-techtest-carloscarrinho/issues"
   },
-  "homepage": "https://github.com/fidelapi-challenges/be-techtest-carloscarrinho#readme"
+  "homepage": "https://github.com/fidelapi-challenges/be-techtest-carloscarrinho#readme",
+  "devDependencies": {
+    "serverless-iam-roles-per-function": "^3.2.0"
+  }
 }
