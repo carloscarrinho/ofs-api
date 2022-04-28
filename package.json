@@ -4,7 +4,8 @@
   "description": "Serverles Offers API challenge",
   "main": "index.js",
   "scripts": {
-    "build": "tsc ."
+    "build": "tsc .",
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -19,8 +20,11 @@
   "homepage": "https://github.com/fidelapi-challenges/be-techtest-carloscarrinho#readme",
   "devDependencies": {
     "@types/aws-lambda": "^8.10.95",
+    "@types/jest": "^27.4.1",
+    "jest": "^27.5.1",
     "serverless-iam-roles-per-function": "^3.2.0",
     "serverless-plugin-typescript": "^2.1.2",
+    "ts-jest": "^27.1.4",
     "typescript": "^4.6.3"
   }
 }
