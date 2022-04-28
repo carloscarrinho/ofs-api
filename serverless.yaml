@@ -1,0 +1,48 @@
+service: sls-offers-api-challenge
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+  environment:
+    TABLE_NAME: ${self:custom.tableName}
+  
+custom:
+  tableName: offers-api-table-${self:provider.stage}
+
+plugins:
+  - serverless-iam-roles-per-function
+  - serverless-plugin-typescript
+
+functions:
+  getBrand:
+    handler: src/presentation/handler.getBrand
+    name: get-brand
+    memorySize: 128 # mb
+    timeout: 5 # seconds
+    events:
+      - http:
+          path: brand/{brandId}
+          method: GET
+    iamRoleStatements:
+      - Effect: "Allow"
+        Action:
+          - "dynamodb:GetItem"
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.tableName}
+
+resources:
+  Resources:
+    OffersApiTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.tableName}
+        AttributeDefinitions:
+          - AttributeName: brandId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: brandId
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
