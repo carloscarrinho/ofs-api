@@ -25,6 +25,7 @@
   "devDependencies": {
     "@types/aws-lambda": "^8.10.95",
     "@types/jest": "^27.4.1",
+    "husky": "^7.0.4",
     "jest": "^27.5.1",
     "lint-staged": "^12.4.1",
     "serverless-iam-roles-per-function": "^3.2.0",
