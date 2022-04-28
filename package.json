@@ -5,7 +5,11 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc .",
-    "test": "jest"
+    "test": "jest",
+    "test:unit": "jest -c jest-unit-config.js",
+    "test:unit:watch": "jest --watch --coverage=false -c jest-unit-config.js",
+    "test:staged": "npm test -- --passWithNoTests --coverage=false --silent",
+    "lint:staged": "lint-staged"
   },
   "repository": {
     "type": "git",
@@ -22,6 +26,7 @@
     "@types/aws-lambda": "^8.10.95",
     "@types/jest": "^27.4.1",
     "jest": "^27.5.1",
+    "lint-staged": "^12.4.1",
     "serverless-iam-roles-per-function": "^3.2.0",
     "serverless-plugin-typescript": "^2.1.2",
     "ts-jest": "^27.1.4",
