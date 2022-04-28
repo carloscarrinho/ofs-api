@@ -9,3 +9,8 @@ export const badRequest = (error: Error) => ({
   statusCode: 400,
   body: { message: error.message },
 });
+
+export const forbbiden = (error: Error) => ({
+  statusCode: 403,
+  body: { message: error.message },
+});
