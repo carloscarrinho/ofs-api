@@ -14,6 +14,17 @@ describe("Unit", () => {
         // THEN
         expect(error).toEqual(new InvalidParamError("x-api-key"));
       });
+      
+      it("Should return null if x-api-key is valid", async () => {
+        // GIVEN
+        const validator = new XApiKeyValidator();
+
+        // WHEN
+        const error = validator.validate("valid-api-key");
+
+        // THEN
+        expect(error).toBeFalsy();
+      });
     });
   });
 });
