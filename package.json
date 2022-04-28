@@ -9,7 +9,8 @@
     "test:unit": "jest -c jest-unit-config.js",
     "test:unit:watch": "jest --watch --coverage=false -c jest-unit-config.js",
     "test:staged": "npm test -- --passWithNoTests --coverage=false --silent",
-    "lint:staged": "lint-staged"
+    "lint:staged": "lint-staged",
+    "test:ci": "npm test -- --coverage"
   },
   "repository": {
     "type": "git",
