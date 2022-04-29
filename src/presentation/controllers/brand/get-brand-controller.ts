@@ -13,10 +13,10 @@ export class GetBrandController implements IController {
   async handle(request: HttpRequest): Promise<HttpResponse> {
     const error = this.validator.validate(request.params);
     if(error) return badRequest(error);
-
-    await this.getBrand.get(request.params?.brandId);
-
+    
     try {
+      await this.getBrand.get(request.params?.brandId);
+
       return ok({ success: request.params.brandId });
     } catch (error) {
       return serverError(error);
