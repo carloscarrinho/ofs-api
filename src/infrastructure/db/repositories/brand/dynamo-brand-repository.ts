@@ -32,4 +32,8 @@ export class DynamoBrandRepository implements IBrandRepository {
 
     return newBrandData;
   }
+
+  async find(id: string): Promise<IBrand> {
+    return null;
+  }
 }
