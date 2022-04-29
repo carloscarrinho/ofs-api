@@ -99,5 +99,22 @@ describe("Integration", () => {
         expect(result).toStrictEqual(defaultNewBrandData);
       });
     });
+    
+    describe("DynamoBrandRepository.find()", () => {
+      it("Should throw an error if DynamoDB throws", async () => {
+        // Given
+        // forcing an error because the table does not exists.
+        await dynamoDb
+          .deleteTable({ TableName: process.env.TABLE_NAME })
+          .promise();
+        const brandRepository = makeDynamoBrandRepository();
+
+        // When
+        const result = brandRepository.find(defaultNewBrandData.id);
+
+        // Then
+        await expect(result).rejects.toThrow();
+      });
+    });
   });
 });
