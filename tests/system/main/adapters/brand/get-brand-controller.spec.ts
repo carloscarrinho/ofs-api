@@ -54,8 +54,8 @@ const teardownDBEnvironment = async () => {
 describe('System', () => {
   describe('Main::Adapters::Brand', () => {
     describe('GetBrandController.adaptGetBrandController', () => {
-      beforeEach(prepareDBEnvironment);
-      afterEach(teardownDBEnvironment);
+      beforeAll(prepareDBEnvironment);
+      afterAll(teardownDBEnvironment);
     
       it('Should return 200 and brand data', async () => {
         // GIVEN
