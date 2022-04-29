@@ -1,3 +1,4 @@
+import { ServerError } from "../errors/server-error";
 import { HttpResponse } from "../protocols/http";
 
 export const ok = (body: object): HttpResponse => ({
@@ -13,4 +14,9 @@ export const badRequest = (error: Error) => ({
 export const forbbiden = (error: Error) => ({
   statusCode: 403,
   body: { message: error.message },
+});
+
+export const serverError = (error: Error): HttpResponse => ({
+  statusCode: 500,
+  body: new ServerError(error.stack) 
 });
