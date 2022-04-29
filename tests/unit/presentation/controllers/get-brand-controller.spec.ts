@@ -23,6 +23,21 @@ const makeRequest = (data?: object): HttpRequest => ({
 describe('Unit', () => {
   describe('Presentation::Controllers', () => {
     describe('GetBrandController.handle()', () => {
+      it('Should call Validation with params provided by request', async () => {
+        // GIVEN
+        const dependencies = { validate: jest.fn() }
+        const brandController = makeController(dependencies);
+        const request = makeRequest({
+          params: { brandId: "some-id" }
+        });
+
+        // WHEN
+        await brandController.handle(request);
+
+        // THEN
+        expect(dependencies.validate).toHaveBeenCalledWith(request.params);
+      });
+
       it('Should return 400 if params Validation fails', async () => {
         // GIVEN
         const brandController = makeController({
