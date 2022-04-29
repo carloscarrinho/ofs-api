@@ -29,6 +29,22 @@ describe('Unit', () => {
         // THEN
         expect(dependencies.store).toBeCalledWith(brandModel);
       });
+
+      it("Should throw an error if BrandRepository throws", async () => {
+        // Given
+        const dependencies = {
+          store: jest.fn().mockImplementationOnce(() => {
+            throw new Error();
+          }),
+        };
+        const dbAddBrand = makeDbAddBrand(dependencies);
+
+        // When
+        const brand = dbAddBrand.add(brandModel);
+
+        // Then
+        expect(brand).rejects.toThrow();
+      });
     });
   });
 });
