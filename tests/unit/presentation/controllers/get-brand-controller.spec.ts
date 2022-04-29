@@ -2,17 +2,24 @@ import { GetBrandController } from "../../../../src/presentation/controllers/bra
 import { IController } from "../../../../src/presentation/controllers/icontroller";
 import { HttpRequest } from "../../../../src/presentation/protocols/http";
 import { IValidation } from "../../../../src/presentation/validators/ivalidation";
+import { IGetBrand } from "../../../../src/application/use-cases/brand/iget-brand";
 
 const makeController = ({
-  validate
+  validate,
+  get
 }:{
   validate?: Function
+  get?: Function
 }): IController => {
   const validation = {
     validate: validate ?? jest.fn().mockReturnValueOnce(null),
   } as unknown as IValidation;
 
-  return new GetBrandController(validation);
+  const getBrand = {
+    get: get ?? jest.fn().mockReturnValueOnce(null),
+  } as unknown as IGetBrand;
+
+  return new GetBrandController(validation, getBrand);
 }
 
 const makeRequest = (data?: object): HttpRequest => ({
@@ -23,7 +30,7 @@ const makeRequest = (data?: object): HttpRequest => ({
 describe('Unit', () => {
   describe('Presentation::Controllers', () => {
     describe('GetBrandController.handle()', () => {
-      it('Should call Validation with params provided by request', async () => {
+      it('Should call Validation with request params', async () => {
         // GIVEN
         const dependencies = { validate: jest.fn() }
         const brandController = makeController(dependencies);
@@ -52,6 +59,21 @@ describe('Unit', () => {
 
         // THEN
         expect(response.statusCode).toStrictEqual(400);
+      });
+
+      it('Should call GetBrand with brand id', async () => {
+        // GIVEN
+        const dependencies = { get: jest.fn() }
+        const brandController = makeController(dependencies);
+        const request = makeRequest({
+          params: { brandId: "some-id" }
+        });
+
+        // WHEN
+        await brandController.handle(request);
+
+        // THEN
+        expect(dependencies.get).toHaveBeenCalledWith(request.params.brandId);
       });
       
       it('Should return 200 if everything is OK', async () => {
