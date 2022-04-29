@@ -41,6 +41,8 @@ export class DynamoBrandRepository implements IBrandRepository {
       })
       .promise();
 
+    if(!record.Item) return null;
+
     return {
       id: record.Item.id,
       name: record.Item.name,
