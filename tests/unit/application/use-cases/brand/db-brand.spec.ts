@@ -106,6 +106,17 @@ describe('Unit', () => {
         // Then
         expect(brand).toBeFalsy();
       });
+      
+      it("Should return null if brand was not found", async () => {
+        // Given
+        const DbBrand = makeDbBrand({});
+
+        // When
+        const brand = await DbBrand.get(defaultBrandData.id);
+
+        // Then
+        expect(brand).toEqual(defaultBrandData);
+      });
     });
   });
 });
