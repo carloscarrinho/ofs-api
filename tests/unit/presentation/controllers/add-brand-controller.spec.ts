@@ -3,13 +3,20 @@ import { HttpRequest } from "../../../../src/presentation/protocols/http";
 import { IValidation } from "../../../../src/presentation/validators/ivalidation";
 import { RequiredFieldsValidator } from "../../../../src/presentation/validators/required-fiels-validator";
 import { ValidationComposite } from "../../../../src/presentation/validators/validation-composite";
+import { IAddBrand } from "../../../../src/application/use-cases/brand/iadd-brand";
 
-const makeController = (): AddBrandController => {
+const makeController = ({
+  add,
+}:{
+  add?: Function,
+}): AddBrandController => {
   const validators: IValidation[] = [new RequiredFieldsValidator(["name"])];
 
   const validation = new ValidationComposite(validators);
 
-  return new AddBrandController(validation);
+  const addBrand = { add } as unknown as IAddBrand;
+
+  return new AddBrandController(validation, addBrand);
 };
 
 const makeRequest = (data?: object): HttpRequest => ({
@@ -28,7 +35,7 @@ describe("Unit", () => {
     describe("AddBrandController.handle()", () => {
       it("Should return 400 if validation returns error", async () => {
         // GIVEN
-        const brandController = makeController();
+        const brandController = makeController({});
         const request = makeRequest({ header: {}, body: {} });
 
         // WHEN
@@ -38,9 +45,22 @@ describe("Unit", () => {
         expect(response.statusCode).toStrictEqual(400);
       });
 
-      it("Should return 200 if everything is OK", async () => {
+      it('Should call AddBrand with required values', async () => {
         // GIVEN
-        const brandController = makeController();
+        const dependencies = { add: jest.fn() };
+        const brandController = makeController(dependencies);
+        const request = makeRequest();
+
+        // WHEN
+        brandController.handle(request);
+        
+        // THEN
+        expect(dependencies.add).toBeCalledWith(request.body?.name);
+      });
+
+      it.skip("Should return 200 if everything is OK", async () => {
+        // GIVEN
+        const brandController = makeController({});
         const request = makeRequest();
 
         // WHEN
