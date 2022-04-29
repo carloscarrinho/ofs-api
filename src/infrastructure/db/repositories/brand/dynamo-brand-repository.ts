@@ -17,8 +17,8 @@ export class DynamoBrandRepository implements IBrandRepository {
   }
 
   async store(brandData: IBrandModel): Promise<IBrand> {
-    const newBrandData = { id: uuid(), ...brandData }
-    
+    const newBrandData = { id: uuid(), ...brandData };
+
     await this.client
       .put({
         TableName: this.settings.tableName,
@@ -34,6 +34,17 @@ export class DynamoBrandRepository implements IBrandRepository {
   }
 
   async find(id: string): Promise<IBrand> {
-    return null;
+    const record = await this.client
+      .get({
+        TableName: process.env.TABLE_NAME,
+        Key: { pk: `brand#${id}` },
+      })
+      .promise();
+
+    return {
+      id: record.Item.id,
+      name: record.Item.name,
+      createdAt: record.Item.createdAt,
+    }
   }
 }
