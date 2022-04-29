@@ -14,7 +14,7 @@ export class AddBrandController implements IController {
     const error = this.validation.validate(request.body); 
     if(error) return badRequest(error); 
 
-    this.addBrand.add(request.body.name)
+    await this.addBrand.add(request.body.name)
 
     return ok({ message: "ok" });
   }

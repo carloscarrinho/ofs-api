@@ -1,20 +1,23 @@
 import { AddBrandController } from "../../../../src/presentation/controllers/brand/add-brand-controller";
 import { HttpRequest } from "../../../../src/presentation/protocols/http";
 import { IValidation } from "../../../../src/presentation/validators/ivalidation";
-import { RequiredFieldsValidator } from "../../../../src/presentation/validators/required-fiels-validator";
-import { ValidationComposite } from "../../../../src/presentation/validators/validation-composite";
 import { IAddBrand } from "../../../../src/application/use-cases/brand/iadd-brand";
 
 const makeController = ({
+  validate,
   add,
-}:{
-  add?: Function,
+}: {
+  validate?: Function;
+  add?: Function;
 }): AddBrandController => {
-  const validators: IValidation[] = [new RequiredFieldsValidator(["name"])];
+  const validation = {
+    validate: validate ?? jest.fn().mockReturnValueOnce(null),
+  } as unknown as IValidation;
 
-  const validation = new ValidationComposite(validators);
-
-  const addBrand = { add } as unknown as IAddBrand;
+  const addBrand = {
+    add:
+      add ?? jest.fn().mockResolvedValue({ id: "some_id", name: "any-name" }),
+  } as unknown as IAddBrand;
 
   return new AddBrandController(validation, addBrand);
 };
@@ -33,38 +36,54 @@ const makeRequest = (data?: object): HttpRequest => ({
 describe("Unit", () => {
   describe("Presentation::Controllers", () => {
     describe("AddBrandController.handle()", () => {
+      it("Should call Validation with body provided values", async () => {
+        // Given
+        const dependencies = { validate: jest.fn() };
+        const addBrandController = makeController(dependencies);
+        const request = makeRequest();
+
+        // When
+        await addBrandController.handle(request);
+
+        // Then
+        expect(dependencies.validate).toHaveBeenCalledWith(request.body);
+      });
+
       it("Should return 400 if validation returns error", async () => {
         // GIVEN
-        const brandController = makeController({});
+        const dependencies = {
+          validate: jest.fn().mockReturnValueOnce(new Error()),
+        };
+        const addBrandController = makeController(dependencies);
         const request = makeRequest({ header: {}, body: {} });
 
         // WHEN
-        const response = await brandController.handle(request);
+        const response = await addBrandController.handle(request);
 
         // THEN
         expect(response.statusCode).toStrictEqual(400);
       });
 
-      it('Should call AddBrand with required values', async () => {
+      it("Should call AddBrand with required values", async () => {
         // GIVEN
         const dependencies = { add: jest.fn() };
-        const brandController = makeController(dependencies);
+        const addBrandController = makeController(dependencies);
         const request = makeRequest();
 
         // WHEN
-        brandController.handle(request);
-        
+        addBrandController.handle(request);
+
         // THEN
         expect(dependencies.add).toBeCalledWith(request.body?.name);
       });
 
-      it.skip("Should return 200 if everything is OK", async () => {
+      it("Should return 200 if everything is OK", async () => {
         // GIVEN
-        const brandController = makeController({});
+        const addBrandController = makeController({});
         const request = makeRequest();
 
         // WHEN
-        const response = await brandController.handle(request);
+        const response = await addBrandController.handle(request);
 
         // THEN
         expect(response.statusCode).toStrictEqual(200);
