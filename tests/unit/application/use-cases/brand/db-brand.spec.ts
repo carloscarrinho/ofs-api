@@ -78,6 +78,22 @@ describe('Unit', () => {
         // THEN
         expect(dependencies.find).toBeCalledWith(defaultBrandData.id);
       });
+
+      it("Should throw an error if BrandRepository throws", async () => {
+        // Given
+        const dependencies = {
+          find: jest.fn().mockImplementationOnce(() => {
+            throw new Error();
+          }),
+        };
+        const DbBrand = makeDbBrand(dependencies);
+
+        // When
+        const brand = DbBrand.get(defaultBrandData.id);
+
+        // Then
+        await expect(brand).rejects.toThrow();
+      });
     });
   });
 });
