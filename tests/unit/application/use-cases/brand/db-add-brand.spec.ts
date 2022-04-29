@@ -45,6 +45,21 @@ describe('Unit', () => {
         // Then
         expect(brand).rejects.toThrow();
       });
+
+      it("Should return a Brand if store succeeds", async () => {
+        // Given
+        const expectedBrand = { id: "some-id", ...brandModel }; 
+        const dependencies = {
+          store: jest.fn().mockResolvedValueOnce(expectedBrand),
+        };
+        const dbAddBrand = makeDbAddBrand(dependencies);
+
+        // When
+        const brand = await dbAddBrand.add(brandModel);
+
+        // Then
+        expect(brand).toStrictEqual(expectedBrand);
+      });
     });
   });
 });
