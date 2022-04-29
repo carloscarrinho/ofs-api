@@ -77,7 +77,27 @@ describe("Unit", () => {
         expect(dependencies.add).toBeCalledWith(request.body?.name);
       });
 
-      it("Should return 200 if everything is OK", async () => {
+      it("Should return 500 if AddBrand throws an error", async () => {
+        // GIVEN
+        const error = new Error();
+        error.stack = "any_stack";
+
+        const dependencies = {
+          add: jest.fn().mockImplementationOnce(() => {
+            throw error;
+          }),
+        };
+        const addBrandController = makeController(dependencies);
+        const request = makeRequest();
+
+        // WHEN
+        const response = await addBrandController.handle(request);
+
+        // THEN
+        expect(response.statusCode).toStrictEqual(500);
+      });
+
+      it("Should return 200 if added brand successfully", async () => {
         // GIVEN
         const addBrandController = makeController({});
         const request = makeRequest();
