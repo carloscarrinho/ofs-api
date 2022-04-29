@@ -23,7 +23,7 @@ functions:
     timeout: 5 # seconds
     events:
       - http:
-          path: brand/{brandId}
+          path: brands/{brandId}
           method: GET
     iamRoleStatements:
       - Effect: "Allow"
