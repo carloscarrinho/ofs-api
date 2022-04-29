@@ -1,5 +1,4 @@
 import { DynamoDB } from "aws-sdk";
-import { } from "aws-sdk/";
 import { DocumentClient } from "aws-sdk/clients/dynamodb";
 import { DynamoBrandRepository } from "../../../../../../src/infrastructure/db/repositories/brand/dynamo-brand-repository";
 import { IBrandRepository } from "../../../../../../src/infrastructure/db/repositories/brand/ibrand-repository";
@@ -55,7 +54,11 @@ const makeDynamoBrandRepository = (): IBrandRepository => {
   return new DynamoBrandRepository(settings);
 };
 
-const defaultNewBrandData = { id: "some-id", name: "any_name" };
+const defaultNewBrandData = { 
+  id: "some-id", 
+  name: "any_name",
+  createdAt: "2022-04-29T20:41:54.630Z"
+};
 
 describe("Integration", () => {
   describe("Infastructure::DB::Repositories::Brand", () => {
@@ -88,9 +91,9 @@ describe("Integration", () => {
         // When
         const result = await brandRepository.store(defaultNewBrandData);
         const record = await dynamoClient
-          .get({ 
+          .get({
             TableName: process.env.TABLE_NAME,
-            Key: { pk: `brand#${defaultNewBrandData.id}` } 
+            Key: { pk: `brand#${defaultNewBrandData.id}` },
           })
           .promise();
 
@@ -99,7 +102,7 @@ describe("Integration", () => {
         expect(result).toStrictEqual(defaultNewBrandData);
       });
     });
-    
+
     describe("DynamoBrandRepository.find()", () => {
       it("Should throw an error if DynamoDB throws", async () => {
         // Given
@@ -116,7 +119,7 @@ describe("Integration", () => {
         await expect(result).rejects.toThrow();
       });
 
-      it("Should return null if resource was not found", async () => {
+      it("Should return null if brand id is not valid", async () => {
         // Given
         const dynamoClient = new DocumentClient({
           endpoint: process.env.TABLE_ENDPOINT,
@@ -126,14 +129,39 @@ describe("Integration", () => {
         // When
         const result = await brandRepository.find("invalid-id");
         const record = await dynamoClient
-          .get({ 
+          .get({
             TableName: process.env.TABLE_NAME,
-            Key: { pk: `invalid-id` } 
+            Key: { pk: `invalid-id` },
           })
           .promise();
 
         // Then
         expect(result).toBeFalsy();
+      });
+
+      it("Should return brand if brand id is valid", async () => {
+        // Given
+        const dynamoClient = new DocumentClient({
+          endpoint: process.env.TABLE_ENDPOINT,
+        });
+        const brandRepository = makeDynamoBrandRepository();
+
+        // storing the brand
+        await dynamoClient
+          .put({
+            TableName: process.env.TABLE_NAME,
+            Item: {
+              ...defaultNewBrandData,
+              pk: `brand#${defaultNewBrandData.id}`,
+            },
+          })
+          .promise();
+
+        // When
+        const result = await brandRepository.find(defaultNewBrandData.id);
+
+        // Then
+        expect(result).toStrictEqual(defaultNewBrandData);
       });
     });
   });
