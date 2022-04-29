@@ -94,6 +94,18 @@ describe('Unit', () => {
         // Then
         await expect(brand).rejects.toThrow();
       });
+
+      it("Should return null if brand was not found", async () => {
+        // Given
+        const dependencies = { find: jest.fn().mockResolvedValueOnce(null) };
+        const DbBrand = makeDbBrand(dependencies);
+
+        // When
+        const brand = await DbBrand.get(defaultBrandData.id);
+
+        // Then
+        expect(brand).toBeFalsy();
+      });
     });
   });
 });
