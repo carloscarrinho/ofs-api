@@ -3,13 +3,11 @@ import { IAddBrand } from "../../../../../src/application/use-cases/brand/iadd-b
 import { IBrandRepository } from "../../../../../src/infrastructure/db/repositories/brand/ibrand-repository";
 
 const brandModel = { name: "any-name" };
+const newBrandData = { id: "some-id", ...brandModel };
 
 const makeDbAddBrand = ({ store }:{ store?: Function }): IAddBrand => {
   const brandRepository = {
-    store: store ?? jest.fn().mockResolvedValueOnce({ 
-      id: "some-id",
-      ...brandModel,
-    })
+    store: store ?? jest.fn().mockResolvedValueOnce(newBrandData)
   } as unknown as IBrandRepository;
 
   return new DbAddBrand(brandRepository);
@@ -43,22 +41,18 @@ describe('Unit', () => {
         const brand = dbAddBrand.add(brandModel);
 
         // Then
-        expect(brand).rejects.toThrow();
+        await expect(brand).rejects.toThrow();
       });
 
       it("Should return a Brand if store succeeds", async () => {
         // Given
-        const expectedBrand = { id: "some-id", ...brandModel }; 
-        const dependencies = {
-          store: jest.fn().mockResolvedValueOnce(expectedBrand),
-        };
-        const dbAddBrand = makeDbAddBrand(dependencies);
+        const dbAddBrand = makeDbAddBrand({});
 
         // When
         const brand = await dbAddBrand.add(brandModel);
 
         // Then
-        expect(brand).toStrictEqual(expectedBrand);
+        expect(brand).toStrictEqual(newBrandData);
       });
     });
   });
