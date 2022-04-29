@@ -115,6 +115,26 @@ describe("Integration", () => {
         // Then
         await expect(result).rejects.toThrow();
       });
+
+      it("Should return null if resource was not found", async () => {
+        // Given
+        const dynamoClient = new DocumentClient({
+          endpoint: process.env.TABLE_ENDPOINT,
+        });
+        const brandRepository = makeDynamoBrandRepository();
+
+        // When
+        const result = await brandRepository.find("invalid-id");
+        const record = await dynamoClient
+          .get({ 
+            TableName: process.env.TABLE_NAME,
+            Key: { pk: `invalid-id` } 
+          })
+          .promise();
+
+        // Then
+        expect(result).toBeFalsy();
+      });
     });
   });
 });
