@@ -13,7 +13,7 @@
     "test:integration": "jest -c jest-integration-config.js",
     "test:integration:watch": "jest --watchAll --coverage=false -c jest-integration-config.js",
     "test:system": "jest -c jest-system-config.js",
-    "test:system:watch": "jest --watch --coverage=false -c jest-system-config.js",
+    "test:system:watch": "jest --watchAll --coverage=false -c jest-system-config.js",
     "test:ci": "npm test -- --coverage",
     "configure:dynamo": "ts-node scripts/configure-dynamo.ts"
   },
