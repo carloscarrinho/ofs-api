@@ -1,4 +1,5 @@
 import { ServerError } from "../errors/server-error";
+import { NotFound } from "../errors/not-found-error";
 import { HttpResponse } from "../protocols/http";
 
 export const ok = (body: object): HttpResponse => ({
@@ -11,9 +12,9 @@ export const badRequest = (error: Error) => ({
   body: { message: error.message },
 });
 
-export const forbbiden = (error: Error) => ({
-  statusCode: 403,
-  body: { message: error.message },
+export const notFound = (id: string) => ({
+  statusCode: 404,
+  body: new NotFound(id),
 });
 
 export const serverError = (error: Error): HttpResponse => ({

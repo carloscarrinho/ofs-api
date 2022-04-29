@@ -16,7 +16,11 @@ const makeController = ({
   } as unknown as IValidation;
 
   const getBrand = {
-    get: get ?? jest.fn().mockReturnValueOnce(null),
+    get: get ?? jest.fn().mockReturnValueOnce({ 
+      id: "some-id", 
+      name: "any-name",
+      createdAt: "2022-04-29T10:00:00"
+    }),
   } as unknown as IGetBrand;
 
   return new GetBrandController(validation, getBrand);
@@ -24,7 +28,7 @@ const makeController = ({
 
 const makeRequest = (data?: object): HttpRequest => ({
   header: { "Content-Type": "application/json" },
-  params: { branId: "some-id"},
+  params: { brandId: "some-id"},
   ...data,
 });
 
@@ -89,8 +93,23 @@ describe('Unit', () => {
         // Then
         expect(response.statusCode).toEqual(500);
       });
+
+      it("Should return 404 if brand id is invalid", async () => {
+        // Given
+        const dependencies = {
+          get: jest.fn().mockResolvedValueOnce(null),
+        };
+        const request = makeRequest();
+        const brandController = makeController(dependencies);
+
+        // When
+        const response = await brandController.handle(request);
+
+        // Then
+        expect(response.statusCode).toEqual(404);
+      });
       
-      it('Should return 200 if everything is OK', async () => {
+      it('Should return 200 if was found', async () => {
         // GIVEN
         const brandController = makeController({});
         const request = makeRequest({

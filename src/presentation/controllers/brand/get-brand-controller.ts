@@ -1,4 +1,4 @@
-import { badRequest, ok, serverError } from "../../helpers/http-helper";
+import { badRequest, notFound, ok, serverError } from "../../helpers/http-helper";
 import { HttpRequest, HttpResponse } from "../../protocols/http";
 import { IValidation } from "../../validators/ivalidation";
 import { IController } from "../icontroller";
@@ -15,9 +15,12 @@ export class GetBrandController implements IController {
     if(error) return badRequest(error);
     
     try {
-      await this.getBrand.get(request.params?.brandId);
+      const { brandId } = request.params;
+      const brand = await this.getBrand.get(brandId);
 
-      return ok({ success: request.params.brandId });
+      if(!brand) return notFound(brandId);
+      
+      return ok({ brand });
     } catch (error) {
       return serverError(error);
     }
