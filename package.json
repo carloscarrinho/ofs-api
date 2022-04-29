@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc .",
     "test": "jest",
-    "test:unit": "jest -c jest-unit-config.js",
+    "test:unit": "jest -c jest-unit-config.js --passWithNoTests",
     "test:unit:watch": "jest --watch --coverage=false -c jest-unit-config.js",
     "test:staged": "npm test -- --passWithNoTests --coverage=false --silent",
     "lint:staged": "lint-staged",
