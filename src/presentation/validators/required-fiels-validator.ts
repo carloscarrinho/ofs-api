@@ -2,11 +2,13 @@ import { MissingParamError } from "../errors/missing-param-error";
 import { IValidation } from "./ivalidation";
 
 export class RequiredFieldsValidator implements IValidation {
-  constructor(private fields: string[]) {}
+  constructor(private readonly fields: string[]) {}
   
   validate(input: any): Error {
-    for(let field of this.fields) {
-      if(!input[field]) return new MissingParamError(field);
+    for(const field of this.fields) {
+      if(!input[field]) {
+        return new MissingParamError(field)
+      };
     }
 
     return null;
