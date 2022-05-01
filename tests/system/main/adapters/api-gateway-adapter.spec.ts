@@ -2,8 +2,7 @@ import { APIGatewayEvent } from "aws-lambda";
 import { DynamoDB } from "aws-sdk";
 import { DocumentClient } from "aws-sdk/clients/dynamodb";
 import { apiGatewayAdapter } from "../../../../src/main/adapters/api-gateway-adapter";
-import { getBrandControllerFactory } from "../../../../src/main/factories/get-brand-controller-factory";
-import { addBrandControllerFactory } from "../../../../src/main/factories";
+import { addBrandControllerFactory, getBrandControllerFactory } from "../../../../src/main/factories";
 import { DBIndexPrefixes } from "../../../../src/infrastructure/db/enums/db-index-prefixes";
 
 const defaultBrandData = { 
