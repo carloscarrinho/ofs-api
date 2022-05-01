@@ -3,17 +3,15 @@ import { DocumentClient } from "aws-sdk/clients/dynamodb";
 import { IBrand, IBrandModel } from "../../../../domain/entities/ibrand";
 import { IBrandRepository } from "./ibrand-repository";
 import { DBIndexPrefixes } from "../../enums/db-index-prefixes";
-
-interface DynamoSettings {
-  tableEndpoint: string;
-  tableName: string;
-}
+import { IDynamoSettings } from "../../settings/idynamo-settings";
 
 export class DynamoBrandRepository implements IBrandRepository {
   private readonly client: DocumentClient;
 
-  constructor(private readonly settings: DynamoSettings) {
-    this.client = new DocumentClient({ endpoint: this.settings.tableEndpoint });
+  constructor(private readonly settings: IDynamoSettings) {
+    this.client = new DocumentClient({
+      endpoint: this.settings.tableEndpoint,
+    });
   }
 
   async store(brandData: IBrandModel): Promise<IBrand> {
