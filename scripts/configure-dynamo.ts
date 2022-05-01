@@ -1,13 +1,13 @@
 import { DynamoDB } from "aws-sdk";
+import { tableModel } from "../src/infrastructure/db/settings/table-model";
 
 async function createDynamoDbTable(): Promise<void> {
   console.log("Creating table...");
 
   const dynamoDb = new DynamoDB({ endpoint: process.env.TABLE_ENDPOINT });
-  const tableName = process.env.TABLE_NAME as string;
   const tables = await dynamoDb.listTables().promise();
   const tableExists = tables.TableNames?.some((name: string) =>
-    [tableName].includes(name)
+    [process.env.TABLE_NAME].includes(name)
   );
 
   if (tableExists) {
@@ -15,15 +15,7 @@ async function createDynamoDbTable(): Promise<void> {
     return;
   }
 
-  const offersTable = await dynamoDb
-    .createTable({
-      AttributeDefinitions: [{ AttributeName: "pk", AttributeType: "S" }],
-      KeySchema: [{ AttributeName: "pk", KeyType: "HASH" }],
-      ProvisionedThroughput: { ReadCapacityUnits: 10, WriteCapacityUnits: 10 },
-      TableName: tableName,
-    })
-    .promise();
-
+  const offersTable = await dynamoDb.createTable(tableModel).promise();
   console.log("Table created successfully", JSON.stringify({ offersTable }));
 }
 
