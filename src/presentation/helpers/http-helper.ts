@@ -14,10 +14,10 @@ export const badRequest = (error: Error) => ({
 
 export const notFound = (id: string) => ({
   statusCode: 404,
-  body: new NotFound(id),
+  body: (new NotFound(id)).message,
 });
 
 export const serverError = (error: Error): HttpResponse => ({
   statusCode: 500,
-  body: new ServerError(error.stack) 
+  body: (new ServerError(error.stack)).stack 
 });

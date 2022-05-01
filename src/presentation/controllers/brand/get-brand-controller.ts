@@ -21,8 +21,8 @@ export class GetBrandController implements IController {
       if(!brand) return notFound(brandId);
       
       return ok({ brand });
-    } catch (error) {
-      return serverError(error);
+    } catch (err) {
+      return serverError(err);
     }
   }
 }

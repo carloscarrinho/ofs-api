@@ -18,8 +18,8 @@ export class AddBrandController implements IController {
       const brand = await this.addBrand.add(request.body);
       
       return ok({ brand });
-    } catch (error) {
-      return serverError(error);      
+    } catch (err) {
+      return serverError(err);      
     }
   }
 }
