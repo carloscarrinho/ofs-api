@@ -17,7 +17,11 @@ export class DynamoBrandRepository implements IBrandRepository {
   }
 
   async store(brandData: IBrandModel): Promise<IBrand> {
-    const newBrandData = { id: uuid(), ...brandData };
+    const newBrandData = { 
+      id: uuid(), 
+      ...brandData,
+      createdAt: new Date().toISOString()
+    };
 
     await this.client
       .put({
@@ -25,7 +29,6 @@ export class DynamoBrandRepository implements IBrandRepository {
         Item: {
           ...newBrandData,
           pk: `${DBIndexPrefixes.BRAND}${newBrandData.id}`,
-          createdAt: new Date().toISOString(),
         },
       })
       .promise();

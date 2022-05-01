@@ -100,7 +100,8 @@ describe("Integration", () => {
 
         // Then
         expect(record.Item.name).toEqual(defaultNewBrandData.name);
-        expect(result).toStrictEqual(defaultNewBrandData);
+        expect(result.id).toStrictEqual(defaultNewBrandData.id);
+        expect(result.name).toStrictEqual(defaultNewBrandData.name);
       });
     });
 
@@ -129,12 +130,6 @@ describe("Integration", () => {
 
         // When
         const result = await brandRepository.find("invalid-id");
-        const record = await dynamoClient
-          .get({
-            TableName: process.env.TABLE_NAME,
-            Key: { pk: `invalid-id` },
-          })
-          .promise();
 
         // Then
         expect(result).toBeFalsy();
