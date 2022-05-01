@@ -2,13 +2,25 @@ import { APIGatewayEvent } from "aws-lambda";
 import { DynamoDB } from "aws-sdk";
 import { DocumentClient } from "aws-sdk/clients/dynamodb";
 import { apiGatewayAdapter } from "../../../../src/main/adapters/api-gateway-adapter";
-import { addBrandControllerFactory, getBrandControllerFactory } from "../../../../src/main/factories";
+import {
+  addBrandControllerFactory,
+  getBrandControllerFactory,
+} from "../../../../src/main/factories";
 import { DBIndexPrefixes } from "../../../../src/infrastructure/db/enums/db-index-prefixes";
 
-const defaultBrandData = { 
-  id: "some-id", 
+const defaultBrandData = {
+  id: "some-id",
   name: "any-name",
-  createdAt: "2022-04-29T20:41:54.630Z"
+  createdAt: "2022-04-29T20:41:54.630Z",
+};
+
+const makeEvent = (data?: object) => {
+  return {
+    headers: {},
+    pathParameters: {},
+    body: JSON.stringify({}),
+    ...data,
+  } as unknown as APIGatewayEvent;
 };
 
 const dynamoDb = new DynamoDB({ endpoint: process.env.TABLE_ENDPOINT });
@@ -53,35 +65,34 @@ const teardownDBEnvironment = async () => {
   }
 };
 
-describe('System', () => {
-  describe('Main::Adapters', () => {
-    describe('apiGatewayAdapter', () => {
+describe("System", () => {
+  describe("Main::Adapters", () => {
+    describe("apiGatewayAdapter", () => {
       beforeEach(prepareDBEnvironment);
       afterEach(teardownDBEnvironment);
-    
-      it('Should return 200 and brand data if add-data returns OK', async () => {
+
+      it("Should return 200 and brand data if add-data returns OK", async () => {
         // GIVEN
-        const event =({ 
-          headers: {}, 
-          pathParameters: {}, 
-          body: { "name": defaultBrandData.name }
-        } as unknown) as APIGatewayEvent;
+        const event = makeEvent({
+          body: JSON.stringify({ name: defaultBrandData.name }),
+        });
 
         // WHEN
-        const response = await apiGatewayAdapter(event, addBrandControllerFactory());
+        const response = await apiGatewayAdapter(
+          event,
+          addBrandControllerFactory()
+        );
 
         // THEN
         expect(response.statusCode).toEqual(200);
         expect(response.body.brand.name).toEqual(defaultBrandData.name);
       });
-      
-      it('Should return 200 and brand data if get-brand returns OK', async () => {
+
+      it("Should return 200 and brand data if get-brand returns OK", async () => {
         // GIVEN
-        const event =({ 
-          headers: {}, 
-          pathParameters: { "brandId": "some-id" }, 
-          body: {}
-        } as unknown) as APIGatewayEvent;
+        const event = makeEvent({
+          pathParameters: { brandId: "some-id" },
+        });
 
         // storing the brand
         const dynamoClient = new DocumentClient({
@@ -96,9 +107,12 @@ describe('System', () => {
             },
           })
           .promise();
-        
+
         // WHEN
-        const response = await apiGatewayAdapter(event, getBrandControllerFactory());
+        const response = await apiGatewayAdapter(
+          event,
+          getBrandControllerFactory()
+        );
 
         // THEN
         expect(response.statusCode).toEqual(200);

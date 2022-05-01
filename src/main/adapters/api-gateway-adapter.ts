@@ -6,7 +6,7 @@ export const apiGatewayAdapter = async (event: APIGatewayEvent, controller: ICon
   const httpRequest: HttpRequest = {
     header: event.headers,
     params: event.pathParameters,
-    body: event.body
+    body: JSON.parse(event.body)
   }
 
   return await controller.handle(httpRequest);
