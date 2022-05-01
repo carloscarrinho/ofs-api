@@ -1,7 +1,8 @@
 import { APIGatewayEvent } from "aws-lambda";
 import { DynamoDB } from "aws-sdk";
 import { DocumentClient } from "aws-sdk/clients/dynamodb";
-import { adaptGetBrandController } from "../../../../../src/main/adapters/get-brand-controller";
+import { apiGatewayAdapter } from "../../../../src/main/adapters/api-gateway-adapter";
+import { getBrandControllerFactory } from "../../../../src/main/factories/get-brand-controller-factory";
 
 const defaultBrandData = { 
   id: "some-id", 
@@ -52,10 +53,10 @@ const teardownDBEnvironment = async () => {
 };
 
 describe('System', () => {
-  describe('Main::Adapters::Brand', () => {
-    describe('GetBrandController.adaptGetBrandController', () => {
-      beforeAll(prepareDBEnvironment);
-      afterAll(teardownDBEnvironment);
+  describe('Main::Adapters', () => {
+    describe('apiGatewayAdapter', () => {
+      beforeEach(prepareDBEnvironment);
+      afterEach(teardownDBEnvironment);
     
       it('Should return 200 and brand data', async () => {
         // GIVEN
@@ -80,7 +81,7 @@ describe('System', () => {
           .promise();
         
         // WHEN
-        const response = await adaptGetBrandController(event);
+        const response = await apiGatewayAdapter(event, getBrandControllerFactory());
 
         // THEN
         expect(response.statusCode).toEqual(200);

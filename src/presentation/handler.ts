@@ -1,8 +1,9 @@
 import { APIGatewayEvent } from "aws-lambda";
-import { adaptGetBrandController } from "../main/adapters/get-brand-controller";
+import { apiGatewayAdapter } from "../main/adapters/api-gateway-adapter";
+import { getBrandControllerFactory } from "../main/factories/get-brand-controller-factory";
 
 export const getBrand = async (event: APIGatewayEvent) => {
-  const response = await adaptGetBrandController(event);
+  const response = await apiGatewayAdapter(event, getBrandControllerFactory());
 
   return {
     statusCode: response.statusCode,
