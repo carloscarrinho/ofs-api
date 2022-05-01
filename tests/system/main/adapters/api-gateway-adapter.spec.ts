@@ -3,10 +3,11 @@ import { DynamoDB } from "aws-sdk";
 import { DocumentClient } from "aws-sdk/clients/dynamodb";
 import { apiGatewayAdapter } from "../../../../src/main/adapters/api-gateway-adapter";
 import { getBrandControllerFactory } from "../../../../src/main/factories/get-brand-controller-factory";
+import { addBrandControllerFactory } from "../../../../src/main/factories";
 
 const defaultBrandData = { 
   id: "some-id", 
-  name: "any_name",
+  name: "any-name",
   createdAt: "2022-04-29T20:41:54.630Z"
 };
 
@@ -58,7 +59,23 @@ describe('System', () => {
       beforeEach(prepareDBEnvironment);
       afterEach(teardownDBEnvironment);
     
-      it('Should return 200 and brand data', async () => {
+      it('Should return 200 and brand data if add-data returns OK', async () => {
+        // GIVEN
+        const event =({ 
+          headers: {}, 
+          pathParameters: {}, 
+          body: { "name": defaultBrandData.name }
+        } as unknown) as APIGatewayEvent;
+
+        // WHEN
+        const response = await apiGatewayAdapter(event, addBrandControllerFactory());
+
+        // THEN
+        expect(response.statusCode).toEqual(200);
+        expect(response.body.brand.name).toEqual(defaultBrandData.name);
+      });
+      
+      it('Should return 200 and brand data if get-brand returns OK', async () => {
         // GIVEN
         const event =({ 
           headers: {}, 
