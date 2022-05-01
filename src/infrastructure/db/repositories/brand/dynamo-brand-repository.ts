@@ -2,6 +2,7 @@ import { v4 as uuid } from "uuid";
 import { DocumentClient } from "aws-sdk/clients/dynamodb";
 import { IBrand, IBrandModel } from "../../../../domain/entities/ibrand";
 import { IBrandRepository } from "./ibrand-repository";
+import { DBIndexPrefixes } from "../../enums/db-index-prefixes";
 
 interface DynamoSettings {
   tableEndpoint: string;
@@ -23,7 +24,7 @@ export class DynamoBrandRepository implements IBrandRepository {
         TableName: this.settings.tableName,
         Item: {
           ...newBrandData,
-          pk: `brand#${newBrandData.id}`,
+          pk: `${DBIndexPrefixes.BRAND}${newBrandData.id}`,
           createdAt: new Date().toISOString(),
         },
       })
@@ -36,7 +37,7 @@ export class DynamoBrandRepository implements IBrandRepository {
     const record = await this.client
       .get({
         TableName: process.env.TABLE_NAME,
-        Key: { pk: `brand#${id}` },
+        Key: { pk: `${DBIndexPrefixes.BRAND}${id}` },
       })
       .promise();
 

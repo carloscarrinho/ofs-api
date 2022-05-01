@@ -1,5 +1,6 @@
 import { DynamoDB } from "aws-sdk";
 import { DocumentClient } from "aws-sdk/clients/dynamodb";
+import { DBIndexPrefixes } from "../../../../../../src/infrastructure/db/enums/db-index-prefixes";
 import { DynamoBrandRepository } from "../../../../../../src/infrastructure/db/repositories/brand/dynamo-brand-repository";
 import { IBrandRepository } from "../../../../../../src/infrastructure/db/repositories/brand/ibrand-repository";
 
@@ -152,7 +153,7 @@ describe("Integration", () => {
             TableName: process.env.TABLE_NAME,
             Item: {
               ...defaultNewBrandData,
-              pk: `brand#${defaultNewBrandData.id}`,
+              pk: `${DBIndexPrefixes.BRAND}${defaultNewBrandData.id}`,
             },
           })
           .promise();
