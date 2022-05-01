@@ -4,6 +4,7 @@ import { DocumentClient } from "aws-sdk/clients/dynamodb";
 import { apiGatewayAdapter } from "../../../../src/main/adapters/api-gateway-adapter";
 import { getBrandControllerFactory } from "../../../../src/main/factories/get-brand-controller-factory";
 import { addBrandControllerFactory } from "../../../../src/main/factories";
+import { DBIndexPrefixes } from "../../../../src/infrastructure/db/enums/db-index-prefixes";
 
 const defaultBrandData = { 
   id: "some-id", 
@@ -92,7 +93,7 @@ describe('System', () => {
             TableName: process.env.TABLE_NAME,
             Item: {
               ...defaultBrandData,
-              pk: `brand#${defaultBrandData.id}`,
+              pk: `${DBIndexPrefixes.BRAND}${defaultBrandData.id}`,
             },
           })
           .promise();

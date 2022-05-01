@@ -57,7 +57,7 @@ const makeDynamoBrandRepository = (): IBrandRepository => {
 
 const defaultNewBrandData = { 
   id: "some-id", 
-  name: "any_name",
+  name: "any-name",
   createdAt: "2022-04-29T20:41:54.630Z"
 };
 
@@ -94,7 +94,7 @@ describe("Integration", () => {
         const record = await dynamoClient
           .get({
             TableName: process.env.TABLE_NAME,
-            Key: { pk: `brand#${defaultNewBrandData.id}` },
+            Key: { pk: `${DBIndexPrefixes.BRAND}${defaultNewBrandData.id}` },
           })
           .promise();
 
