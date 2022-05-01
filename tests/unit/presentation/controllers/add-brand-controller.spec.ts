@@ -74,7 +74,7 @@ describe("Unit", () => {
         addBrandController.handle(request);
 
         // THEN
-        expect(dependencies.add).toBeCalledWith(request.body?.name);
+        expect(dependencies.add).toBeCalledWith(request.body);
       });
 
       it("Should return 500 if AddBrand throws an error", async () => {

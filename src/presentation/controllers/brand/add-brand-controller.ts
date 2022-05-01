@@ -15,7 +15,7 @@ export class AddBrandController implements IController {
     if(error) return badRequest(error); 
 
     try {
-      const brand = await this.addBrand.add(request.body.name);
+      const brand = await this.addBrand.add(request.body);
       
       return ok({ brand });
     } catch (error) {
