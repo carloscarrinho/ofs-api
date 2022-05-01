@@ -1,6 +1,6 @@
-import { IBrand } from "../../../domain/entities/ibrand";
+import { IBrand, IBrandModel } from "../../../domain/entities/ibrand";
 import { IBrandRepository } from "../../../infrastructure/db/repositories/brand/ibrand-repository";
-import { IAddBrand, IBrandModel } from "./iadd-brand";
+import { IAddBrand,  } from "./iadd-brand";
 import { IGetBrand } from "./iget-brand";
 
 export class DbBrand implements IAddBrand, IGetBrand {
