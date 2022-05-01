@@ -14,40 +14,44 @@ export class DynamoBrandRepository implements IBrandRepository {
     });
   }
 
-  async store(brandData: IBrandModel): Promise<IBrand> {
-    const newBrandData = { 
-      id: uuid(), 
-      ...brandData,
-      createdAt: new Date().toISOString()
+  async store(brandModel: IBrandModel): Promise<IBrand> {
+    const brand = {
+      id: uuid(),
+      createdAt: new Date().toISOString(),
+      ...brandModel,
     };
 
-    await this.client
-      .put({
-        TableName: this.settings.tableName,
-        Item: {
-          ...newBrandData,
-          pk: `${DBIndexPrefixes.BRAND}${newBrandData.id}`,
-        },
-      })
-      .promise();
+    const params = {
+      TableName: this.settings.tableName,
+      Item: {
+        pk: `${DBIndexPrefixes.BRAND}${brand.id}`,
+        sk: `${DBIndexPrefixes.BRAND}${brand.id}`,
+        id: brand.id,
+        name: brand.name,
+        createdAt: brand.createdAt,
+      },
+    };
 
-    return newBrandData;
+    await this.client.put(params).promise();
+    return brand;
   }
 
   async find(id: string): Promise<IBrand> {
-    const record = await this.client
-      .get({
-        TableName: process.env.TABLE_NAME,
-        Key: { pk: `${DBIndexPrefixes.BRAND}${id}` },
-      })
-      .promise();
+    const params = {
+      TableName: process.env.TABLE_NAME,
+      Key: {
+        pk: `${DBIndexPrefixes.BRAND}${id}`,
+        sk: `${DBIndexPrefixes.BRAND}${id}`,
+      },
+    };
 
-    if(!record.Item) return null;
+    const record = await this.client.get(params).promise();
+    if (!record.Item) return null;
 
     return {
       id: record.Item.id,
       name: record.Item.name,
       createdAt: record.Item.createdAt,
-    }
+    };
   }
 }

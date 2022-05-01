@@ -7,6 +7,8 @@ import {
   getBrandControllerFactory,
 } from "../../../../src/main/factories";
 import { DBIndexPrefixes } from "../../../../src/infrastructure/db/enums/db-index-prefixes";
+import { tableModel } from "../../../../src/infrastructure/db/settings/table-model";
+
 
 const defaultBrandData = {
   id: "some-id",
@@ -34,17 +36,7 @@ const prepareDBEnvironment = async () => {
 
     if (foundTable) return;
 
-    await dynamoDb
-      .createTable({
-        TableName: process.env.TABLE_NAME,
-        AttributeDefinitions: [{ AttributeName: "pk", AttributeType: "S" }],
-        KeySchema: [{ AttributeName: "pk", KeyType: "HASH" }],
-        ProvisionedThroughput: {
-          ReadCapacityUnits: 10,
-          WriteCapacityUnits: 10,
-        },
-      })
-      .promise();
+    await dynamoDb.createTable(tableModel).promise();
   } catch (error) {
     console.log(error);
   }
@@ -68,6 +60,7 @@ const teardownDBEnvironment = async () => {
 describe("System", () => {
   describe("Main::Adapters", () => {
     describe("apiGatewayAdapter", () => {
+      beforeAll(teardownDBEnvironment);
       beforeEach(prepareDBEnvironment);
       afterEach(teardownDBEnvironment);
 
@@ -104,6 +97,7 @@ describe("System", () => {
             Item: {
               ...defaultBrandData,
               pk: `${DBIndexPrefixes.BRAND}${defaultBrandData.id}`,
+              sk: `${DBIndexPrefixes.BRAND}${defaultBrandData.id}`,
             },
           })
           .promise();

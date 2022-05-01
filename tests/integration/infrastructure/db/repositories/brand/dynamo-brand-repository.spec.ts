@@ -3,6 +3,7 @@ import { DocumentClient } from "aws-sdk/clients/dynamodb";
 import { DBIndexPrefixes } from "../../../../../../src/infrastructure/db/enums/db-index-prefixes";
 import { DynamoBrandRepository } from "../../../../../../src/infrastructure/db/repositories/brand/dynamo-brand-repository";
 import { IBrandRepository } from "../../../../../../src/infrastructure/db/repositories/brand/ibrand-repository";
+import { tableModel } from "../../../../../../src/infrastructure/db/settings/table-model";
 
 const dynamoDb = new DynamoDB({ endpoint: process.env.TABLE_ENDPOINT });
 
@@ -16,15 +17,7 @@ const prepareEnvironment = async () => {
     if (foundTable) return;
 
     await dynamoDb
-      .createTable({
-        TableName: process.env.TABLE_NAME,
-        AttributeDefinitions: [{ AttributeName: "pk", AttributeType: "S" }],
-        KeySchema: [{ AttributeName: "pk", KeyType: "HASH" }],
-        ProvisionedThroughput: {
-          ReadCapacityUnits: 10,
-          WriteCapacityUnits: 10,
-        },
-      })
+      .createTable(tableModel)
       .promise();
   } catch (error) {
     console.log(error);
@@ -91,12 +84,14 @@ describe("Integration", () => {
 
         // When
         const result = await brandRepository.store(defaultNewBrandData);
-        const record = await dynamoClient
-          .get({
-            TableName: process.env.TABLE_NAME,
-            Key: { pk: `${DBIndexPrefixes.BRAND}${defaultNewBrandData.id}` },
-          })
-          .promise();
+        const params = {
+          TableName: process.env.TABLE_NAME,
+          Key: { 
+            pk: `${DBIndexPrefixes.BRAND}${defaultNewBrandData.id}`, 
+            sk: `${DBIndexPrefixes.BRAND}${defaultNewBrandData.id}`, 
+          },
+        }
+        const record = await dynamoClient.get(params).promise();
 
         // Then
         expect(record.Item.name).toEqual(defaultNewBrandData.name);
@@ -123,9 +118,6 @@ describe("Integration", () => {
 
       it("Should return null if brand id is not valid", async () => {
         // Given
-        const dynamoClient = new DocumentClient({
-          endpoint: process.env.TABLE_ENDPOINT,
-        });
         const brandRepository = makeDynamoBrandRepository();
 
         // When
@@ -149,6 +141,7 @@ describe("Integration", () => {
             Item: {
               ...defaultNewBrandData,
               pk: `${DBIndexPrefixes.BRAND}${defaultNewBrandData.id}`,
+              sk: `${DBIndexPrefixes.BRAND}${defaultNewBrandData.id}`,
             },
           })
           .promise();
