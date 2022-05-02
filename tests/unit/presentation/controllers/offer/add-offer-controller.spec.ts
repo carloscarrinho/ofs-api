@@ -3,17 +3,7 @@ import { IValidation } from "../../../../../src/presentation/validators/ivalidat
 import { HttpRequest } from "../../../../../src/presentation/protocols/http";
 import { IAddOffer } from "../../../../../src/application/use-cases/offer/iadd-offer";
 import { IGetBrand } from "../../../../../src/application/use-cases/brand/iget-brand";
-
-const defaultOfferModel = {
-  brandId: "any-brand-id",
-  name: "any-brand-name",
-  startDate: "2022-04-29T20:41:54.630Z",
-  endDate: "2022-05-29T20:41:54.630Z",
-  type: {
-    value: "any-value",
-    name: "any-name"
-  }
-}
+import { generateOfferModel } from "../../../../fixtures/offer/offer-fixture";
 
 const makeController = ({
   validate,
@@ -42,7 +32,7 @@ const makeController = ({
         id: "any-offer-id", 
         locationsTotal: 1,
         createdAt: "2022-04-29T20:41:54.630Z", 
-        ...defaultOfferModel,
+        ...generateOfferModel(),
      }),
   } as unknown as IAddOffer;
   
@@ -53,7 +43,7 @@ const makeRequest = (data?: object): HttpRequest => ({
   header: {
     "Content-Type": "application/json",
   },
-  body: defaultOfferModel,
+  body: generateOfferModel(),
   ...data,
 });
 
