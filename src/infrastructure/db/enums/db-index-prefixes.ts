@@ -1,3 +1,4 @@
 export enum DBIndexPrefixes {
-  BRAND = "brand#"
+  BRAND = "brand#",
+  OFFER = "offer#"
 }
