@@ -4,11 +4,12 @@ import { DocumentClient } from "aws-sdk/clients/dynamodb";
 import { apiGatewayAdapter } from "../../../../src/main/adapters/api-gateway-adapter";
 import {
   addBrandControllerFactory,
+  addOfferControllerFactory,
   getBrandControllerFactory,
 } from "../../../../src/main/factories";
 import { DBIndexPrefixes } from "../../../../src/infrastructure/db/enums/db-index-prefixes";
 import { tableModel } from "../../../../src/infrastructure/db/settings/table-model";
-
+import { generateOfferModel } from "../../../fixtures/offer/offer-fixture";
 
 const defaultBrandData = {
   id: "some-id",
@@ -64,53 +65,90 @@ describe("System", () => {
       beforeEach(prepareDBEnvironment);
       afterEach(teardownDBEnvironment);
 
-      it("Should return 200 and brand data if add-data returns OK", async () => {
-        // GIVEN
-        const event = makeEvent({
-          body: JSON.stringify({ name: defaultBrandData.name }),
+      describe('Brand', () => {
+        it("Should return 200 and brand data if add-data returns OK", async () => {
+          // GIVEN
+          const event = makeEvent({
+            body: JSON.stringify({ name: defaultBrandData.name }),
+          });
+  
+          // WHEN
+          const response = await apiGatewayAdapter(
+            event,
+            addBrandControllerFactory()
+          );
+  
+          // THEN
+          expect(response.statusCode).toEqual(200);
+          expect(response.body.brand.name).toEqual(defaultBrandData.name);
         });
-
-        // WHEN
-        const response = await apiGatewayAdapter(
-          event,
-          addBrandControllerFactory()
-        );
-
-        // THEN
-        expect(response.statusCode).toEqual(200);
-        expect(response.body.brand.name).toEqual(defaultBrandData.name);
+  
+        it("Should return 200 and brand data if get-brand returns OK", async () => {
+          // GIVEN
+          const event = makeEvent({
+            pathParameters: { brandId: "some-id" },
+          });
+  
+          // storing the brand
+          const dynamoClient = new DocumentClient({
+            endpoint: process.env.TABLE_ENDPOINT,
+          });
+          await dynamoClient
+            .put({
+              TableName: process.env.TABLE_NAME,
+              Item: {
+                ...defaultBrandData,
+                pk: `${DBIndexPrefixes.BRAND}${defaultBrandData.id}`,
+                sk: `${DBIndexPrefixes.BRAND}${defaultBrandData.id}`,
+              },
+            })
+            .promise();
+  
+          // WHEN
+          const response = await apiGatewayAdapter(
+            event,
+            getBrandControllerFactory()
+          );
+  
+          // THEN
+          expect(response.statusCode).toEqual(200);
+          expect(response.body.brand).toEqual(defaultBrandData);
+        });      
       });
 
-      it("Should return 200 and brand data if get-brand returns OK", async () => {
-        // GIVEN
-        const event = makeEvent({
-          pathParameters: { brandId: "some-id" },
+      describe('Offer', () => {
+        it("Should return 200 and brand data if add-data returns OK", async () => {
+          // GIVEN
+          const offerModel = generateOfferModel({ brandId: defaultBrandData.id });
+          const event = makeEvent({
+            body: JSON.stringify(offerModel),
+          });
+
+          // storing the brand
+          const dynamoClient = new DocumentClient({
+            endpoint: process.env.TABLE_ENDPOINT,
+          });
+          await dynamoClient
+            .put({
+              TableName: process.env.TABLE_NAME,
+              Item: {
+                ...defaultBrandData,
+                pk: `${DBIndexPrefixes.BRAND}${defaultBrandData.id}`,
+                sk: `${DBIndexPrefixes.BRAND}${defaultBrandData.id}`,
+              },
+            })
+            .promise();
+  
+          // WHEN
+          const response = await apiGatewayAdapter(
+            event,
+            addOfferControllerFactory()
+          );
+
+          // THEN
+          expect(response.statusCode).toEqual(200);
+          expect(response.body.offer.name).toEqual(offerModel.name);
         });
-
-        // storing the brand
-        const dynamoClient = new DocumentClient({
-          endpoint: process.env.TABLE_ENDPOINT,
-        });
-        await dynamoClient
-          .put({
-            TableName: process.env.TABLE_NAME,
-            Item: {
-              ...defaultBrandData,
-              pk: `${DBIndexPrefixes.BRAND}${defaultBrandData.id}`,
-              sk: `${DBIndexPrefixes.BRAND}${defaultBrandData.id}`,
-            },
-          })
-          .promise();
-
-        // WHEN
-        const response = await apiGatewayAdapter(
-          event,
-          getBrandControllerFactory()
-        );
-
-        // THEN
-        expect(response.statusCode).toEqual(200);
-        expect(response.body.brand).toEqual(defaultBrandData);
       });
     });
   });
