@@ -14,7 +14,11 @@ export class AddOfferController implements IController {
     const error = this.validation.validate(request.body); 
     if(error) return badRequest(error); 
 
-    await this.addOffer.add(request.body);
+    try {
+      await this.addOffer.add(request.body);
+    } catch (err) {
+      return serverError(err);
+    }
 
     return null;
   }

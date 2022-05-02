@@ -89,6 +89,26 @@ describe("Unit", () => {
         // THEN
         expect(dependencies.add).toBeCalledWith(request.body);
       });
+
+      it("Should return 500 if AddOffer throws an error", async () => {
+        // GIVEN
+        const error = new Error();
+        error.stack = "any_stack";
+
+        const dependencies = {
+          add: jest.fn().mockImplementationOnce(() => {
+            throw error;
+          }),
+        };
+        const addController = makeController(dependencies);
+        const request = makeRequest();
+
+        // WHEN
+        const response = await addController.handle(request);
+
+        // THEN
+        expect(response.statusCode).toStrictEqual(500);
+      });
     });
   });
 });
