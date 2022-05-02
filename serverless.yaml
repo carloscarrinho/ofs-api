@@ -30,6 +30,20 @@ functions:
         Action:
           - "dynamodb:GetItem"
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.tableName}
+  addBrand:
+    handler: src/presentation/handler.addBrand
+    name: add-brand
+    memorySize: 128 # mb
+    timeout: 5 # seconds
+    events:
+      - http:
+          path: brands
+          method: POST
+    iamRoleStatements:
+      - Effect: "Allow"
+        Action:
+          - "dynamodb:PutItem"
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.tableName}
 
 resources:
   Resources:
