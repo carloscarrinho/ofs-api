@@ -1,8 +1,8 @@
-import { GetBrandController } from "../../../../src/presentation/controllers/brand/get-brand-controller";
-import { IController } from "../../../../src/presentation/controllers/icontroller";
-import { HttpRequest } from "../../../../src/presentation/protocols/http";
-import { IValidation } from "../../../../src/presentation/validators/ivalidation";
-import { IGetBrand } from "../../../../src/application/use-cases/brand/iget-brand";
+import { GetBrandController } from "../../../../../src/presentation/controllers/brand/get-brand-controller";
+import { IController } from "../../../../../src/presentation/controllers/icontroller";
+import { HttpRequest } from "../../../../../src/presentation/protocols/http";
+import { IValidation } from "../../../../../src/presentation/validators/ivalidation";
+import { IGetBrand } from "../../../../../src/application/use-cases/brand/iget-brand";
 
 const makeController = ({
   validate,

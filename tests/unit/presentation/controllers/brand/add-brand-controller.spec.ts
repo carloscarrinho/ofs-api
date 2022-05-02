@@ -1,7 +1,7 @@
-import { AddBrandController } from "../../../../src/presentation/controllers/brand/add-brand-controller";
-import { HttpRequest } from "../../../../src/presentation/protocols/http";
-import { IValidation } from "../../../../src/presentation/validators/ivalidation";
-import { IAddBrand } from "../../../../src/application/use-cases/brand/iadd-brand";
+import { AddBrandController } from "../../../../../src/presentation/controllers/brand/add-brand-controller";
+import { HttpRequest } from "../../../../../src/presentation/protocols/http";
+import { IValidation } from "../../../../../src/presentation/validators/ivalidation";
+import { IAddBrand } from "../../../../../src/application/use-cases/brand/iadd-brand";
 
 const makeController = ({
   validate,
