@@ -56,6 +56,7 @@ const defaultNewBrandData = {
 
 describe("Integration", () => {
   describe("Infastructure::DB::Repositories::Brand", () => {
+    beforeAll(teardownEnvironment);
     beforeEach(prepareEnvironment);
     afterEach(teardownEnvironment);
 
