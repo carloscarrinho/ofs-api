@@ -18,8 +18,7 @@ export class AddOfferController implements IController {
     
     const { brandId } = request.body;
 
-    try {
-      
+    try { 
       const brand = await this.getBrand.get(brandId);
       if (!brand) return notFound(brandId);
 
@@ -29,7 +28,5 @@ export class AddOfferController implements IController {
     } catch (err) {
       return serverError(err);
     }
-
-    return null;
   }
 }

@@ -173,6 +173,18 @@ describe("Unit", () => {
         // THEN
         expect(response.statusCode).toStrictEqual(500);
       });
+
+      it("Should return 200 if added brand successfully", async () => {
+        // GIVEN
+        const addOfferController = makeController({});
+        const request = makeRequest();
+
+        // WHEN
+        const response = await addOfferController.handle(request);
+
+        // THEN
+        expect(response.statusCode).toStrictEqual(200);
+      });
     });
   });
 });
