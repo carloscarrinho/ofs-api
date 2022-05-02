@@ -35,7 +35,7 @@ const makeRequest = (data?: object): HttpRequest => ({
 
 describe("Unit", () => {
   describe("Presentation::Controllers", () => {
-    describe.only("AddOfferController.handle()", () => {
+    describe("AddOfferController.handle()", () => {
       it("Should call Validation with body provided values", async () => {
         // Given
         const dependencies = { validate: jest.fn() };
@@ -47,6 +47,21 @@ describe("Unit", () => {
 
         // Then
         expect(dependencies.validate).toHaveBeenCalledWith(request.body);
+      });
+
+      it("Should return 400 if validation returns error", async () => {
+        // GIVEN
+        const dependencies = {
+          validate: jest.fn().mockReturnValueOnce(new Error()),
+        };
+        const addBrandController = makeController(dependencies);
+        const request = makeRequest();
+
+        // WHEN
+        const response = await addBrandController.handle(request);
+
+        // THEN
+        expect(response.statusCode).toStrictEqual(400);
       });
     });
   });
