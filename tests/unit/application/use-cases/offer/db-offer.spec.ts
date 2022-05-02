@@ -29,6 +29,22 @@ describe("Unit", () => {
         // THEN
         expect(dependencies.store).toBeCalledWith(generateOfferModel());
       });
+
+      it("Should throw an error if OfferRepository throws", async () => {
+        // Given
+        const dependencies = {
+          store: jest.fn().mockImplementationOnce(() => {
+            throw new Error();
+          }),
+        };
+        const DbOffer = makeDbOffer(dependencies);
+
+        // When
+        const brand = DbOffer.add(generateOfferModel());
+
+        // Then
+        await expect(brand).rejects.toThrow();
+      });
     });
   });
 });
