@@ -15,5 +15,5 @@ export const generateOfferModel = (data?: object): IOfferModel => ({
 export const generateOfferEntity = (data?: object): IOffer => ({
   id: "any-brand-id",
   locationsTotal: 0,
-  ...generateOfferEntity()
+  ...generateOfferModel()
 });

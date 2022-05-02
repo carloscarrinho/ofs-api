@@ -45,6 +45,17 @@ describe("Unit", () => {
         // Then
         await expect(brand).rejects.toThrow();
       });
+
+      it("Should return an Offer if store succeeds", async () => {
+        // Given
+        const DbOffer = makeDbOffer({});
+
+        // When
+        const brand = await DbOffer.add(generateOfferModel());
+
+        // Then
+        expect(brand).toStrictEqual(generateOfferEntity());
+      });
     });
   });
 });
