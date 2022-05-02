@@ -44,6 +44,21 @@ functions:
         Action:
           - "dynamodb:PutItem"
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.tableName}
+  addOffer:
+    handler: src/presentation/handler.addOffer
+    name: add-offer
+    memorySize: 128 # mb
+    timeout: 5 # seconds
+    events:
+      - http:
+          path: offers
+          method: POST
+    iamRoleStatements:
+      - Effect: "Allow"
+        Action:
+          - "dynamodb:GetItem"
+          - "dynamodb:PutItem"
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.tableName}
 
 resources:
   Resources:
