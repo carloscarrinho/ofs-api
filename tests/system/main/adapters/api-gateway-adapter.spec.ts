@@ -5,10 +5,12 @@ import { apiGatewayAdapter } from "../../../../src/main/adapters/api-gateway-ada
 import {
   addBrandControllerFactory,
   addOfferControllerFactory,
+  addLocationControllerFactory,
   getBrandControllerFactory,
 } from "../../../../src/main/factories";
 import { DBIndexPrefixes } from "../../../../src/infrastructure/db/enums/db-index-prefixes";
-import { generateOfferModel } from "../../../fixtures/offer/offer-fixture";
+import { generateOfferEntity, generateOfferModel } from "../../../fixtures/offer/offer-fixture";
+import { generateLocationEntity, generateLocationModel } from "../../../fixtures/location/location-fixture";
 
 const defaultBrandData = {
   id: "some-id",
@@ -142,9 +144,10 @@ describe("System", () => {
       });
 
       describe('Offer', () => {
-        it("Should return 200 and brand data if add-data returns OK", async () => {
+        it("Should return 200 and offer data if add-offer returns OK", async () => {
           // GIVEN
           const offerModel = generateOfferModel({ brandId: defaultBrandData.id });
+          const offerEntity = generateOfferEntity({offerModel});
           const event = makeEvent({
             body: JSON.stringify(offerModel),
           });
@@ -173,6 +176,42 @@ describe("System", () => {
           // THEN
           expect(response.statusCode).toEqual(200);
           expect(response.body.offer.name).toEqual(offerModel.name);
+        });
+      });
+      
+      describe('Location', () => {
+        it("Should return 200 and location data if add-location returns OK", async () => {
+          // GIVEN
+          const locationModel = generateLocationModel({ brandId: defaultBrandData.id });
+          const locationEntity = generateLocationEntity(locationModel);
+          const event = makeEvent({
+            body: JSON.stringify(locationModel),
+          });
+
+          // storing the location
+          const dynamoClient = new DocumentClient({
+            endpoint: process.env.TABLE_ENDPOINT,
+          });
+          await dynamoClient
+            .put({
+              TableName: process.env.TABLE_NAME,
+              Item: {
+                ...defaultBrandData,
+                pk: `${DBIndexPrefixes.BRAND}${locationModel.brandId}`,
+                sk: `${DBIndexPrefixes.BRAND}${locationModel.brandId}`,
+              },
+            })
+            .promise();
+  
+          // WHEN
+          const response = await apiGatewayAdapter(
+            event,
+            addLocationControllerFactory()
+          );
+
+          // THEN
+          expect(response.statusCode).toEqual(200);
+          expect(response.body.location.address).toEqual(locationModel.address);
         });
       });
     });
