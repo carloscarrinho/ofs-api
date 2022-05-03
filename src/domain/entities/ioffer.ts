@@ -7,6 +7,7 @@ export interface IOfferModel {
     name: string;
     value: string;
   };
+  locations?: string[]
 }
 
 export interface IOffer {
@@ -16,6 +17,7 @@ export interface IOffer {
   startDate: string;
   endDate: string;
   locationsTotal: number;
+  locations?: string[];
   status: string;
   type: {
     name: string;
