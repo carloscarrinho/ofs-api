@@ -4,6 +4,7 @@ import { DBIndexPrefixes } from "../../../../../../src/infrastructure/db/enums/d
 import { IOfferRepository } from "../../../../../../src/infrastructure/db/repositories/offer/ioffer-repository";
 import { DynamoOfferRepository } from "../../../../../../src/infrastructure/db/repositories/offer/dynamo-offer-repository";
 import { generateOfferEntity, generateOfferModel } from "../../../../../fixtures/offer/offer-fixture";
+import { generateLinkLocationModel } from "../../../../../fixtures/offer/link-location-fixture";
 
 const dynamoDb = new DynamoDB({ endpoint: process.env.TABLE_ENDPOINT });
 
@@ -122,6 +123,66 @@ describe("Integration", () => {
         expect(result.id).toStrictEqual(offerEntity.id);
         expect(result.name).toStrictEqual(offerEntity.name);
         expect(record.Item.name).toEqual(offerEntity.name);
+      });
+    });
+    
+    describe("DynamoOfferRepository.linkLocation()", () => {  
+      it("Should throw an error if DynamoDB throws", async () => {
+        // Given
+        const offerRepository = makeDynamoOfferRepository();
+        // forcing an error because the table does not exists.
+        const tables = await dynamoDb.listTables().promise();
+        const foundTable = tables.TableNames?.some(
+          (name: string) => [process.env.TABLE_NAME].includes(name)
+        );
+        if(foundTable) {
+          await dynamoDb
+            .deleteTable({ TableName: process.env.TABLE_NAME })
+            .promise();
+        }
+
+        // When
+        const result = offerRepository.linkLocation(generateLinkLocationModel());
+
+        // Then
+        await expect(result).rejects.toThrow();
+      });
+
+      it("Should return TRUE if location was linked successfully", async () => {
+        // Given
+        const dynamoClient = new DocumentClient({
+          endpoint: process.env.TABLE_ENDPOINT,
+        });
+        const offerRepository = makeDynamoOfferRepository();
+        const offerModel = generateOfferModel();
+        const offerEntity = generateOfferEntity(offerModel);
+        const linkLocationModel = generateLinkLocationModel();
+        // storing offer
+        await dynamoClient
+          .put({
+            TableName: process.env.TABLE_NAME,
+            Item: {
+              ...offerEntity,
+              pk: `${DBIndexPrefixes.BRAND}${offerEntity.brandId}`,
+              sk: `${DBIndexPrefixes.OFFER}${offerEntity.id}`,
+            },
+          })
+          .promise();
+
+        // When
+        const result = await offerRepository.linkLocation(linkLocationModel);
+        const params = {
+          TableName: process.env.TABLE_NAME,
+          Key: { 
+            pk: `${DBIndexPrefixes.BRAND}${offerEntity.brandId}`, 
+            sk: `${DBIndexPrefixes.OFFER}${offerEntity.id}`, 
+          },
+        }
+        const record = await dynamoClient.get(params).promise();
+
+        // Then
+        expect(result).toBeTruthy();
+        expect(record.Item.locationsTotal).toBe(1);
       });
     });
   });

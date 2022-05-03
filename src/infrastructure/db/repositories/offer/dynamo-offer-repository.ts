@@ -5,6 +5,7 @@ import { IOfferRepository } from "./ioffer-repository";
 import { DBIndexPrefixes } from "../../enums/db-index-prefixes";
 import { IDynamoSettings } from "../../settings/idynamo-settings";
 import { OfferStatuses } from "../../../../domain/enums/offer-statuses";
+import { ILinkLocationModel } from "../../../../application/use-cases/offer/ilink-location";
 
 export class DynamoOfferRepository implements IOfferRepository {
   private readonly client: DynamoDB;
@@ -41,5 +42,25 @@ export class DynamoOfferRepository implements IOfferRepository {
     }).promise();
 
     return offer;
+  }
+
+  async linkLocation(linkLocationModel: ILinkLocationModel): Promise<boolean> {
+    await this.client
+      .transactWriteItems({ TransactItems: [{
+        Update: {
+          TableName: this.settings.tableName,
+          Key: {
+            pk: { S: `${DBIndexPrefixes.BRAND}${linkLocationModel.brandId}` },
+            sk: { S: `${DBIndexPrefixes.OFFER}${linkLocationModel.offerId}` },
+          },
+          ConditionExpression: "attribute_exists(pk)",
+          UpdateExpression: "SET #locationsTotal = #locationsTotal + :inc",
+          ExpressionAttributeNames: { "#locationsTotal": "locationsTotal" },
+          ExpressionAttributeValues: { ":inc": { N: "1" } },
+        },
+      }] })
+      .promise();
+
+    return true;
   }
 }
