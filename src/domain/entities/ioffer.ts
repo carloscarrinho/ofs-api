@@ -16,6 +16,7 @@ export interface IOffer {
   startDate: string;
   endDate: string;
   locationsTotal: number;
+  status: string;
   type: {
     name: string;
     value: string;

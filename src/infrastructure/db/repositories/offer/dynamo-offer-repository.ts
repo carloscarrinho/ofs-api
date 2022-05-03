@@ -4,6 +4,7 @@ import { IOffer, IOfferModel } from "../../../../domain/entities/ioffer";
 import { IOfferRepository } from "./ioffer-repository";
 import { DBIndexPrefixes } from "../../enums/db-index-prefixes";
 import { IDynamoSettings } from "../../settings/idynamo-settings";
+import { OfferStatuses } from "../../../../domain/enums/offer-statuses";
 
 export class DynamoOfferRepository implements IOfferRepository {
   private readonly client: DocumentClient;
@@ -18,6 +19,7 @@ export class DynamoOfferRepository implements IOfferRepository {
     const offer = {
       id: uuid(),
       locationsTotal: 0,
+      status: OfferStatuses.CREATED,
       createdAt: new Date().toISOString(),
       ...offerModel,
     };
@@ -33,6 +35,7 @@ export class DynamoOfferRepository implements IOfferRepository {
         startDate: offer.startDate,
         endDate: offer.endDate,
         locationsTotal: offer.locationsTotal,
+        status: offer.status,
         type: offer.type,
         createdAt: offer.createdAt,
       },

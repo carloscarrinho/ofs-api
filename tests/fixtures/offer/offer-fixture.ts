@@ -1,4 +1,5 @@
 import { IOffer, IOfferModel } from "../../../src/domain/entities/ioffer";
+import { OfferStatuses } from "../../../src/domain/enums/offer-statuses";
 
 export const generateOfferModel = (data?: object): IOfferModel => ({
   brandId: "any-brand-id",
@@ -15,5 +16,6 @@ export const generateOfferModel = (data?: object): IOfferModel => ({
 export const generateOfferEntity = (data?: object): IOffer => ({
   id: "any-brand-id",
   locationsTotal: 0,
+  status: OfferStatuses.CREATED,
   ...generateOfferModel()
 });
