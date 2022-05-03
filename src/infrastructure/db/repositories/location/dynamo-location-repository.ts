@@ -1,17 +1,15 @@
 import { v4 as uuid } from "uuid";
-import { DocumentClient } from "aws-sdk/clients/dynamodb";
+import { DynamoDB, Location } from "aws-sdk";
 import { ILocation, ILocationModel } from "../../../../domain/entities/ilocation";
 import { ILocationRepository } from "./ilocation-repository";
 import { DBIndexPrefixes } from "../../enums/db-index-prefixes";
 import { IDynamoSettings } from "../../settings/idynamo-settings";
 
 export class DynamoLocationRepository implements ILocationRepository {
-  private readonly client: DocumentClient;
+  private readonly client: DynamoDB;
 
   constructor(private readonly settings: IDynamoSettings) {
-    this.client = new DocumentClient({
-      endpoint: this.settings.tableEndpoint,
-    });
+    this.client = new DynamoDB({ endpoint: this.settings.tableEndpoint });
   }
 
   async store(locationModel: ILocationModel): Promise<ILocation> {
@@ -21,21 +19,41 @@ export class DynamoLocationRepository implements ILocationRepository {
       createdAt: new Date().toISOString(),
       ...locationModel,
     };
-
-    const params = {
+    
+    await this.client.putItem({
       TableName: this.settings.tableName,
+      ConditionExpression: "attribute_not_exists(pk)",
       Item: {
-        pk: `${DBIndexPrefixes.BRAND}${location.brandId}`,
-        sk: `${DBIndexPrefixes.LOCATION}${location.id}`,
-        id: location.id,
-        brandId: location.brandId,
-        address: location.address,
-        hasOffer: location.hasOffer,
-        createdAt: location.createdAt,
+        pk: { S: `${DBIndexPrefixes.BRAND}${location.brandId}` },
+        sk: { S: `${DBIndexPrefixes.LOCATION}${location.id}` },
+        id: { B: location.id },
+        brandId: { S: location.brandId },
+        address: { S: location.address },
+        hasOffer: { BOOL: location.hasOffer },
+        createdAt: { S: location.createdAt },
       },
-    };
+    }).promise();
 
-    await this.client.put(params).promise();
     return location;
+  }
+
+  async find(brandId: string, locationId: string): Promise<ILocation> {
+    const record = await this.client.getItem({
+      TableName: this.settings.tableName,
+      Key: {
+        pk: { S: `${DBIndexPrefixes.BRAND}${brandId}`},
+        sk: { S: `${DBIndexPrefixes.LOCATION}${locationId}`}
+      }
+    }).promise();
+
+    if(!record.Item) return null;
+    
+    return {
+      id: record.Item.id.S,
+      brandId: record.Item.brandId.S,
+      address: record.Item.address.S,
+      hasOffer: record.Item.hasOffer.BOOL,
+      createdAt: record.Item.address.S,
+    }
   }
 }

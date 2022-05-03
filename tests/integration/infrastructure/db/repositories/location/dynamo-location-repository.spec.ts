@@ -9,6 +9,7 @@ import {
 } from "../../../../../fixtures/location/location-fixture";
 
 const dynamoDb = new DynamoDB({ endpoint: process.env.TABLE_ENDPOINT });
+const locationEntity = generateLocationEntity();
 
 const prepareEnvironment = async () => {
   try {
@@ -116,6 +117,56 @@ describe("Integration", () => {
         const locationRepository = makeDynamoLocationRepository();
         const locationModel = generateLocationModel();
         const locationEntity = generateLocationEntity(locationModel);
+
+        // When
+        const result = await locationRepository.store(locationEntity);
+        const params = {
+          TableName: process.env.TABLE_NAME,
+          Key: {
+            pk: `${DBIndexPrefixes.BRAND}${locationEntity.brandId}`,
+            sk: `${DBIndexPrefixes.LOCATION}${locationEntity.id}`,
+          },
+        };
+        const record = await dynamoClient.get(params).promise();
+
+        // Then
+        expect(result.id).toStrictEqual(locationEntity.id);
+        expect(result.address).toStrictEqual(locationEntity.address);
+        expect(record.Item.address).toEqual(locationEntity.address);
+      });
+    });
+
+    describe("DynamoLocationRepository.find()", () => {
+      it("Should throw an error if DynamoDB throws", async () => {
+        // Given
+        const locationRepository = makeDynamoLocationRepository();
+        // forcing an error because the table does not exists.
+        const tables = await dynamoDb.listTables().promise();
+        const foundTable = tables.TableNames?.some((name: string) =>
+          [process.env.TABLE_NAME].includes(name)
+        );
+        if (foundTable) {
+          await dynamoDb
+            .deleteTable({ TableName: process.env.TABLE_NAME })
+            .promise();
+        }
+
+        // When
+        const result = locationRepository.find(
+          locationEntity.brandId,
+          locationEntity.id
+        );
+
+        // Then
+        await expect(result).rejects.toThrow();
+      });
+
+      it("Should return the location data if location was found successfully", async () => {
+        // Given
+        const dynamoClient = new DocumentClient({
+          endpoint: process.env.TABLE_ENDPOINT,
+        });
+        const locationRepository = makeDynamoLocationRepository();
 
         // When
         const result = await locationRepository.store(locationEntity);
