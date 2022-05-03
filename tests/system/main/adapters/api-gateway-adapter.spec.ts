@@ -7,10 +7,17 @@ import {
   addOfferControllerFactory,
   addLocationControllerFactory,
   getBrandControllerFactory,
+  linkLocationControllerFactory,
 } from "../../../../src/main/factories";
 import { DBIndexPrefixes } from "../../../../src/infrastructure/db/enums/db-index-prefixes";
-import { generateOfferEntity, generateOfferModel } from "../../../fixtures/offer/offer-fixture";
-import { generateLocationEntity, generateLocationModel } from "../../../fixtures/location/location-fixture";
+import {
+  generateOfferEntity,
+  generateOfferModel,
+} from "../../../fixtures/offer/offer-fixture";
+import {
+  generateLocationEntity,
+  generateLocationModel,
+} from "../../../fixtures/location/location-fixture";
 
 const defaultBrandData = {
   id: "some-id",
@@ -18,7 +25,7 @@ const defaultBrandData = {
   createdAt: "2022-04-29T20:41:54.630Z",
 };
 
-const makeEvent = (data?: object) => {
+const makeEvent = (data?: Partial<APIGatewayEvent>) => {
   return {
     headers: {},
     pathParameters: {},
@@ -38,34 +45,41 @@ const prepareDBEnvironment = async () => {
 
     if (foundTable) return;
 
-    await dynamoDb.createTable({
-      AttributeDefinitions: [
-        { AttributeName: "pk", AttributeType: "S" },
-        { AttributeName: "sk", AttributeType: "S" },
-        { AttributeName: "gsi1pk", AttributeType: "S" },
-        { AttributeName: "gsi1sk", AttributeType: "S" },
-      ],
-      KeySchema: [
-        { AttributeName: "pk", KeyType: "HASH" },
-        { AttributeName: "sk", KeyType: "RANGE" },
-      ],
-      GlobalSecondaryIndexes: [
-        {
-          IndexName: "gsi1",
-          KeySchema: [
-            { AttributeName: "gsi1pk", KeyType: "HASH" },
-            { AttributeName: "gsi1sk", KeyType: "RANGE" },
-          ],
-          ProvisionedThroughput: { ReadCapacityUnits: 10, WriteCapacityUnits: 10 },
-          Projection: {
-            ProjectionType: "ALL",
+    await dynamoDb
+      .createTable({
+        AttributeDefinitions: [
+          { AttributeName: "pk", AttributeType: "S" },
+          { AttributeName: "sk", AttributeType: "S" },
+          { AttributeName: "gsi1pk", AttributeType: "S" },
+          { AttributeName: "gsi1sk", AttributeType: "S" },
+        ],
+        KeySchema: [
+          { AttributeName: "pk", KeyType: "HASH" },
+          { AttributeName: "sk", KeyType: "RANGE" },
+        ],
+        GlobalSecondaryIndexes: [
+          {
+            IndexName: "gsi1",
+            KeySchema: [
+              { AttributeName: "gsi1pk", KeyType: "HASH" },
+              { AttributeName: "gsi1sk", KeyType: "RANGE" },
+            ],
+            ProvisionedThroughput: {
+              ReadCapacityUnits: 10,
+              WriteCapacityUnits: 10,
+            },
+            Projection: {
+              ProjectionType: "ALL",
+            },
           },
+        ],
+        ProvisionedThroughput: {
+          ReadCapacityUnits: 10,
+          WriteCapacityUnits: 10,
         },
-      ],
-      ProvisionedThroughput: { ReadCapacityUnits: 10, WriteCapacityUnits: 10 },
-      TableName: process.env.TABLE_NAME,
-    }).promise();
-
+        TableName: process.env.TABLE_NAME,
+      })
+      .promise();
   } catch (error) {
     console.log(error);
   }
@@ -92,30 +106,30 @@ describe("System", () => {
       beforeEach(prepareDBEnvironment);
       afterEach(teardownDBEnvironment);
 
-      describe('Brand', () => {
+      describe("Brand", () => {
         it("Should return 200 and brand data if add-data returns OK", async () => {
           // GIVEN
           const event = makeEvent({
             body: JSON.stringify({ name: defaultBrandData.name }),
           });
-  
+
           // WHEN
           const response = await apiGatewayAdapter(
             event,
             addBrandControllerFactory()
           );
-  
+
           // THEN
           expect(response.statusCode).toEqual(200);
           expect(response.body.brand.name).toEqual(defaultBrandData.name);
         });
-  
+
         it("Should return 200 and brand data if get-brand returns OK", async () => {
           // GIVEN
           const event = makeEvent({
             pathParameters: { brandId: "some-id" },
           });
-  
+
           // storing the brand
           const dynamoClient = new DocumentClient({
             endpoint: process.env.TABLE_ENDPOINT,
@@ -130,24 +144,26 @@ describe("System", () => {
               },
             })
             .promise();
-  
+
           // WHEN
           const response = await apiGatewayAdapter(
             event,
             getBrandControllerFactory()
           );
-  
+
           // THEN
           expect(response.statusCode).toEqual(200);
           expect(response.body.brand).toEqual(defaultBrandData);
-        });      
+        });
       });
 
-      describe('Offer', () => {
+      describe("Offer", () => {
         it("Should return 200 and offer data if add-offer returns OK", async () => {
           // GIVEN
-          const offerModel = generateOfferModel({ brandId: defaultBrandData.id });
-          const offerEntity = generateOfferEntity({offerModel});
+          const offerModel = generateOfferModel({
+            brandId: defaultBrandData.id,
+          });
+          const offerEntity = generateOfferEntity(offerModel);
           const event = makeEvent({
             body: JSON.stringify(offerModel),
           });
@@ -166,7 +182,7 @@ describe("System", () => {
               },
             })
             .promise();
-  
+
           // WHEN
           const response = await apiGatewayAdapter(
             event,
@@ -177,12 +193,70 @@ describe("System", () => {
           expect(response.statusCode).toEqual(200);
           expect(response.body.offer.name).toEqual(offerModel.name);
         });
+
+        it("Should return 200 and body as TRUE if link-location returns OK", async () => {
+          // GIVEN
+          const offerEntity = generateOfferEntity({
+            brandId: defaultBrandData.id,
+          });
+
+          const locationEntity = generateLocationEntity({
+            brandId: defaultBrandData.id,
+          });
+
+          const event = makeEvent({
+            pathParameters: { offerId: offerEntity.id },
+            body: JSON.stringify({
+              brandId: offerEntity.brandId,
+              locationId: locationEntity.id,
+            }),
+          });
+
+          // storing the brand
+          const dynamoClient = new DocumentClient({
+            endpoint: process.env.TABLE_ENDPOINT,
+          });
+          await dynamoClient
+            .put({
+              TableName: process.env.TABLE_NAME,
+              Item: {
+                ...defaultBrandData,
+                pk: `${DBIndexPrefixes.BRAND}${offerEntity.brandId}`,
+                sk: `${DBIndexPrefixes.BRAND}${offerEntity.brandId}`,
+              },
+            })
+            .promise();
+
+          // storing offer
+          await dynamoClient
+            .put({
+              TableName: process.env.TABLE_NAME,
+              Item: {
+                ...offerEntity,
+                pk: `${DBIndexPrefixes.BRAND}${offerEntity.brandId}`,
+                sk: `${DBIndexPrefixes.OFFER}${offerEntity.id}`,
+              },
+            })
+            .promise();
+
+          // WHEN
+          const response = await apiGatewayAdapter(
+            event,
+            linkLocationControllerFactory()
+          );
+
+          // THEN
+          expect(response.statusCode).toEqual(200);
+          expect(response.body.result).toBe(true);
+        });
       });
-      
-      describe('Location', () => {
+
+      describe("Location", () => {
         it("Should return 200 and location data if add-location returns OK", async () => {
           // GIVEN
-          const locationModel = generateLocationModel({ brandId: defaultBrandData.id });
+          const locationModel = generateLocationModel({
+            brandId: defaultBrandData.id,
+          });
           const locationEntity = generateLocationEntity(locationModel);
           const event = makeEvent({
             body: JSON.stringify(locationModel),
@@ -202,7 +276,7 @@ describe("System", () => {
               },
             })
             .promise();
-  
+
           // WHEN
           const response = await apiGatewayAdapter(
             event,
