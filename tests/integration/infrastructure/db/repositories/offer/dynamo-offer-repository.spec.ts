@@ -3,7 +3,6 @@ import { DocumentClient } from "aws-sdk/clients/dynamodb";
 import { DBIndexPrefixes } from "../../../../../../src/infrastructure/db/enums/db-index-prefixes";
 import { IOfferRepository } from "../../../../../../src/infrastructure/db/repositories/offer/ioffer-repository";
 import { DynamoOfferRepository } from "../../../../../../src/infrastructure/db/repositories/offer/dynamo-offer-repository";
-import { tableModel } from "../../../../../../src/infrastructure/db/settings/table-model";
 import { generateOfferEntity, generateOfferModel } from "../../../../../fixtures/offer/offer-fixture";
 
 const dynamoDb = new DynamoDB({ endpoint: process.env.TABLE_ENDPOINT });
@@ -17,9 +16,34 @@ const prepareEnvironment = async () => {
 
     if (foundTable) return;
 
-    await dynamoDb
-      .createTable(tableModel)
-      .promise();
+    await dynamoDb.createTable({
+      AttributeDefinitions: [
+        { AttributeName: "pk", AttributeType: "S" },
+        { AttributeName: "sk", AttributeType: "S" },
+        { AttributeName: "gsi1pk", AttributeType: "S" },
+        { AttributeName: "gsi1sk", AttributeType: "S" },
+      ],
+      KeySchema: [
+        { AttributeName: "pk", KeyType: "HASH" },
+        { AttributeName: "sk", KeyType: "RANGE" },
+      ],
+      GlobalSecondaryIndexes: [
+        {
+          IndexName: "gsi1",
+          KeySchema: [
+            { AttributeName: "gsi1pk", KeyType: "HASH" },
+            { AttributeName: "gsi1sk", KeyType: "RANGE" },
+          ],
+          ProvisionedThroughput: { ReadCapacityUnits: 10, WriteCapacityUnits: 10 },
+          Projection: {
+            ProjectionType: "ALL",
+          },
+        },
+      ],
+      ProvisionedThroughput: { ReadCapacityUnits: 10, WriteCapacityUnits: 10 },
+      TableName: process.env.TABLE_NAME,
+    }).promise();
+    
   } catch (error) {
     console.log(error);
   }
@@ -41,28 +65,31 @@ const teardownEnvironment = async () => {
 };
 
 const makeDynamoOfferRepository = (): IOfferRepository => {
-  const settings = {
+  return new DynamoOfferRepository({
     tableEndpoint: process.env.TABLE_ENDPOINT,
     tableName: process.env.TABLE_NAME,
-  };
-
-  return new DynamoOfferRepository(settings);
+  });
 };
 
 describe("Integration", () => {
   describe("Infastructure::DB::Repositories::Offer", () => {
-    beforeAll(teardownEnvironment);
     beforeEach(prepareEnvironment);
     afterEach(teardownEnvironment);
 
-    describe("DynamoOfferRepository.store()", () => {
+    describe("DynamoOfferRepository.store()", () => {  
       it("Should throw an error if DynamoDB throws", async () => {
         // Given
-        // forcing an error because the table does not exists.
-        await dynamoDb
-          .deleteTable({ TableName: process.env.TABLE_NAME })
-          .promise();
         const offerRepository = makeDynamoOfferRepository();
+        // forcing an error because the table does not exists.
+        const tables = await dynamoDb.listTables().promise();
+        const foundTable = tables.TableNames?.some(
+          (name: string) => [process.env.TABLE_NAME].includes(name)
+        );
+        if(foundTable) {
+          await dynamoDb
+            .deleteTable({ TableName: process.env.TABLE_NAME })
+            .promise();
+        }
 
         // When
         const result = offerRepository.store(generateOfferModel());
