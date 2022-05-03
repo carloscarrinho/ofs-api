@@ -10,7 +10,7 @@ export class DbOffer implements IAddOffer, ILinkLocation {
     return await this.repository.store(offerModel);
   }
 
-  async link(linkLocationModel: ILinkLocationModel): Promise<IOffer> {
+  async link(linkLocationModel: ILinkLocationModel): Promise<boolean> {
     return await this.repository.linkLocation(linkLocationModel);
   }
 }

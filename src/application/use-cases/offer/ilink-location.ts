@@ -7,5 +7,5 @@ export interface ILinkLocationModel {
 }
 
 export interface ILinkLocation {
-  link(linkLocationModel: ILinkLocationModel): Promise<IOffer>;
+  link(linkLocationModel: ILinkLocationModel): Promise<boolean>;
 }

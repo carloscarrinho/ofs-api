@@ -12,13 +12,7 @@ const makeDbOffer = ({
 }): DbOffer => {
   const offerRepository = {
     store: store ?? jest.fn().mockResolvedValueOnce(generateOfferEntity()),
-    linkLocation:
-      linkLocation ??
-      jest.fn().mockResolvedValueOnce(
-        generateOfferEntity({
-          locations: ["any-location-id"],
-        })
-      ),
+    linkLocation: linkLocation ?? jest.fn().mockResolvedValueOnce(true),
   } as unknown as IOfferRepository;
 
   return new DbOffer(offerRepository);
@@ -97,7 +91,7 @@ describe("Unit", () => {
         await expect(offer).rejects.toThrow();
       });
 
-      it("Should return an Offer if store succeeds", async () => {
+      it("Should return TRUE if link succeeds", async () => {
         // Given
         const DbOffer = makeDbOffer({});
 
@@ -105,9 +99,7 @@ describe("Unit", () => {
         const offer = await DbOffer.link(generateLinkLocationModel());
 
         // Then
-        expect(offer).toStrictEqual(generateOfferEntity({
-          locations: [ "any-location-id" ],
-        }));
+        expect(offer).toBe(true);
       });
     });
   });
