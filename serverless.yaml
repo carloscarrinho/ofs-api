@@ -59,6 +59,21 @@ functions:
           - "dynamodb:GetItem"
           - "dynamodb:PutItem"
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.tableName}
+  addLocation:
+    handler: src/presentation/handler.addLocation
+    name: add-location
+    memorySize: 128 # mb
+    timeout: 5 # seconds
+    events:
+      - http:
+          path: locations
+          method: POST
+    iamRoleStatements:
+      - Effect: "Allow"
+        Action:
+          - "dynamodb:GetItem"
+          - "dynamodb:PutItem"
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.tableName}
 
 resources:
   Resources:
