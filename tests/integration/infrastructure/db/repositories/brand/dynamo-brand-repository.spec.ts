@@ -55,7 +55,6 @@ const teardownEnvironment = async () => {
       [process.env.TABLE_NAME].includes(name)
     );
 
-    console.log('foundTable >> ', foundTable);
     if (!foundTable) return;
 
     await dynamoDb.deleteTable({ TableName: process.env.TABLE_NAME }).promise();

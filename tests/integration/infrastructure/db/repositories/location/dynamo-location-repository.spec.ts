@@ -128,8 +128,6 @@ describe("Integration", () => {
         };
         const record = await dynamoClient.get(params).promise();
 
-        console.log('record >> ', record);
-
         // Then
         expect(result.id).toStrictEqual(locationEntity.id);
         expect(result.address).toStrictEqual(locationEntity.address);
