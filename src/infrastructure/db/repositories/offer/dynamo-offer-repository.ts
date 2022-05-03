@@ -27,14 +27,15 @@ export class DynamoOfferRepository implements IOfferRepository {
     const params = {
       TableName: this.settings.tableName,
       Item: {
-        pk: `${DBIndexPrefixes.OFFER}${offer.id}`,
-        sk: `${DBIndexPrefixes.BRAND}${offer.brandId}`,
+        pk: `${DBIndexPrefixes.BRAND}${offer.brandId}`,
+        sk: `${DBIndexPrefixes.OFFER}${offer.id}`,
         id: offer.id,
         brandId: offer.brandId,
         name: offer.name,
         startDate: offer.startDate,
         endDate: offer.endDate,
         locationsTotal: offer.locationsTotal,
+        locations: offer?.locations,
         status: offer.status,
         type: offer.type,
         createdAt: offer.createdAt,

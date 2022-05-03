@@ -112,8 +112,8 @@ describe("Integration", () => {
         const params = {
           TableName: process.env.TABLE_NAME,
           Key: { 
-            pk: `${DBIndexPrefixes.OFFER}${offerEntity.id}`, 
-            sk: `${DBIndexPrefixes.BRAND}${offerEntity.brandId}`, 
+            pk: `${DBIndexPrefixes.BRAND}${offerEntity.brandId}`, 
+            sk: `${DBIndexPrefixes.OFFER}${offerEntity.id}`, 
           },
         }
         const record = await dynamoClient.get(params).promise();
