@@ -11,9 +11,9 @@
     "test:staged": "npm test -- --passWithNoTests --coverage=false --silent",
     "lint:staged": "lint-staged",
     "test:integration": "jest -c jest-integration-config.js --runInBand",
-    "test:integration:watch": "jest --watchAll --coverage=false -c jest-integration-config.js",
+    "test:integration:watch": "jest --watchAll --coverage=false -c jest-integration-config.js --runInBand",
     "test:system": "jest -c jest-system-config.js --runInBand",
-    "test:system:watch": "jest --watchAll --coverage=false -c jest-system-config.js",
+    "test:system:watch": "jest --watchAll --coverage=false -c jest-system-config.js --runInBand",
     "test:ci": "npm test -- --coverage",
     "configure:dynamo": "ts-node scripts/configure-dynamo.ts"
   },
