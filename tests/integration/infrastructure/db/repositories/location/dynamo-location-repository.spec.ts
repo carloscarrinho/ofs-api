@@ -7,9 +7,12 @@ import {
   generateLocationEntity,
   generateLocationModel,
 } from "../../../../../fixtures/location/location-fixture";
+import {
+  generateBrandEntity,
+} from "../../../../../fixtures/brand/brand-fixture";
 
 const dynamoDb = new DynamoDB({ endpoint: process.env.TABLE_ENDPOINT });
-const locationEntity = generateLocationEntity();
+const locationEntity = generateLocationEntity({ brandId: generateBrandEntity().id });
 
 const prepareEnvironment = async () => {
   try {
@@ -166,23 +169,43 @@ describe("Integration", () => {
         const dynamoClient = new DocumentClient({
           endpoint: process.env.TABLE_ENDPOINT,
         });
+
         const locationRepository = makeDynamoLocationRepository();
 
-        // When
-        const result = await locationRepository.store(locationEntity);
-        const params = {
-          TableName: process.env.TABLE_NAME,
-          Key: {
-            pk: `${DBIndexPrefixes.BRAND}${locationEntity.brandId}`,
-            sk: `${DBIndexPrefixes.LOCATION}${locationEntity.id}`,
-          },
-        };
-        const record = await dynamoClient.get(params).promise();
+        // storing brand
+        await dynamoClient
+          .put({
+            TableName: process.env.TABLE_NAME,
+            Item: {
+              ...locationEntity,
+              pk: `${DBIndexPrefixes.BRAND}${locationEntity.brandId}`,
+              sk: `${DBIndexPrefixes.BRAND}${locationEntity.brandId}`,
+            },
+          })
+          .promise();
+        
+          // storing location
+        await dynamoClient
+          .put({
+            TableName: process.env.TABLE_NAME,
+            Item: {
+              ...generateLocationEntity(),
+              pk: `${DBIndexPrefixes.BRAND}${locationEntity.brandId}`,
+              sk: `${DBIndexPrefixes.LOCATION}${locationEntity.id}`,
+            },
+          })
+          .promise();
 
+        // When
+        const result = await locationRepository.find(
+          locationEntity.brandId, 
+          locationEntity.id
+        );
+        
         // Then
         expect(result.id).toStrictEqual(locationEntity.id);
         expect(result.address).toStrictEqual(locationEntity.address);
-        expect(record.Item.address).toEqual(locationEntity.address);
+        expect(result.hasOffer).toStrictEqual(locationEntity.hasOffer);
       });
     });
   });
