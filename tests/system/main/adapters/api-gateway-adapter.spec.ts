@@ -4,9 +4,10 @@ import { DocumentClient } from "aws-sdk/clients/dynamodb";
 import { apiGatewayAdapter } from "../../../../src/main/adapters/api-gateway-adapter";
 import {
   addBrandControllerFactory,
-  addOfferControllerFactory,
-  addLocationControllerFactory,
   getBrandControllerFactory,
+  addOfferControllerFactory,
+  getOfferControllerFactory,
+  addLocationControllerFactory,
   getLocationControllerFactory,
   linkLocationControllerFactory,
 } from "../../../../src/main/factories";
@@ -22,6 +23,7 @@ import {
 import { generateBrandEntity } from "../../../fixtures/brand/brand-fixture";
 
 const defaultBrandData = generateBrandEntity();
+const offerEntity = generateOfferEntity({ brandId: defaultBrandData.id });
 
 const makeEvent = (data?: Partial<APIGatewayEvent>) => {
   return {
@@ -189,6 +191,51 @@ describe("System", () => {
           // THEN
           expect(response.statusCode).toEqual(200);
           expect(response.body.offer.name).toEqual(offerModel.name);
+        });
+
+        it("Should return 200 and offer data if get-offer returns OK", async () => {
+          // GIVEN
+          const dynamoClient = new DocumentClient({
+            endpoint: process.env.TABLE_ENDPOINT,
+          });
+
+          const event = makeEvent({
+            headers: { brandId: defaultBrandData.id },
+            pathParameters: { offerId: offerEntity.id },
+          });
+
+          // storing the brand
+          await dynamoClient
+            .put({
+              TableName: process.env.TABLE_NAME,
+              Item: {
+                ...defaultBrandData,
+                pk: `${DBIndexPrefixes.BRAND}${defaultBrandData.id}`,
+                sk: `${DBIndexPrefixes.BRAND}${defaultBrandData.id}`,
+              },
+            })
+            .promise();
+          // storing the offer
+          await dynamoClient
+            .put({
+              TableName: process.env.TABLE_NAME,
+              Item: {
+                ...offerEntity,
+                pk: `${DBIndexPrefixes.BRAND}${offerEntity.brandId}`,
+                sk: `${DBIndexPrefixes.OFFER}${offerEntity.id}`,
+              },
+            })
+            .promise();
+
+          // WHEN
+          const response = await apiGatewayAdapter(
+            event,
+            getOfferControllerFactory()
+          );
+
+          // THEN
+          expect(response.statusCode).toEqual(200);
+          expect(response.body.offer.id).toEqual(offerEntity.id);
         });
 
         it("Should return 200 and body as TRUE if link-location returns OK", async () => {

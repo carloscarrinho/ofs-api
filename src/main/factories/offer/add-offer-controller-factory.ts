@@ -14,7 +14,6 @@ export const addOfferControllerFactory = () => {
       "name",
       "startDate",
       "endDate",
-      "type",
     ]),
   ]);
 
