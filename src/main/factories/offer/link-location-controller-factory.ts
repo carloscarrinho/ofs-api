@@ -19,7 +19,7 @@ export const linkLocationControllerFactory = () => {
   const dbLocation = new DbLocation(dynamoLocationRepository);
 
   const dynamoOfferRepository = new DynamoOfferRepository(dynamoSettings);
-  const dbOffer = new DbOffer(dynamoOfferRepository);
+  const dbOffer = new DbOffer(dynamoOfferRepository, dynamoLocationRepository);
 
   return new LinkLocationController(validation, dbLocation, dbOffer);
 };

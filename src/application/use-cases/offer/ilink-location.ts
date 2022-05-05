@@ -1,5 +1,3 @@
-import { IOffer } from "../../../domain/entities/ioffer";
-
 export interface ILinkLocationModel {
   brandId: string;
   offerId: string;
