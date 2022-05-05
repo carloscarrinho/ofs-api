@@ -18,12 +18,9 @@ import {
   generateLocationEntity,
   generateLocationModel,
 } from "../../../fixtures/location/location-fixture";
+import { generateBrandEntity } from "../../../fixtures/brand/brand-fixture";
 
-const defaultBrandData = {
-  id: "some-id",
-  name: "any-name",
-  createdAt: "2022-04-29T20:41:54.630Z",
-};
+const defaultBrandData = generateBrandEntity();
 
 const makeEvent = (data?: Partial<APIGatewayEvent>) => {
   return {
@@ -127,7 +124,7 @@ describe("System", () => {
         it("Should return 200 and brand data if get-brand returns OK", async () => {
           // GIVEN
           const event = makeEvent({
-            pathParameters: { brandId: "some-id" },
+            pathParameters: { brandId: defaultBrandData.id },
           });
 
           // storing the brand
@@ -163,7 +160,6 @@ describe("System", () => {
           const offerModel = generateOfferModel({
             brandId: defaultBrandData.id,
           });
-          const offerEntity = generateOfferEntity(offerModel);
           const event = makeEvent({
             body: JSON.stringify(offerModel),
           });
@@ -212,10 +208,11 @@ describe("System", () => {
             }),
           });
 
-          // storing the brand
           const dynamoClient = new DocumentClient({
             endpoint: process.env.TABLE_ENDPOINT,
           });
+
+          // storing the brand
           await dynamoClient
             .put({
               TableName: process.env.TABLE_NAME,
@@ -223,6 +220,18 @@ describe("System", () => {
                 ...defaultBrandData,
                 pk: `${DBIndexPrefixes.BRAND}${offerEntity.brandId}`,
                 sk: `${DBIndexPrefixes.BRAND}${offerEntity.brandId}`,
+              },
+            })
+            .promise();
+            
+          // storing the location
+          await dynamoClient
+            .put({
+              TableName: process.env.TABLE_NAME,
+              Item: {
+                ...locationEntity,
+                pk: `${DBIndexPrefixes.BRAND}${locationEntity.brandId}`,
+                sk: `${DBIndexPrefixes.LOCATION}${locationEntity.id}`,
               },
             })
             .promise();
@@ -257,7 +266,6 @@ describe("System", () => {
           const locationModel = generateLocationModel({
             brandId: defaultBrandData.id,
           });
-          const locationEntity = generateLocationEntity(locationModel);
           const event = makeEvent({
             body: JSON.stringify(locationModel),
           });
