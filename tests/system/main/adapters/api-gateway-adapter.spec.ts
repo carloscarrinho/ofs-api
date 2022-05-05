@@ -202,10 +202,10 @@ describe("System", () => {
           });
 
           const event = makeEvent({
-            pathParameters: { offerId: offerEntity.id },
+            pathParameters: { locationId: locationEntity.id },
             body: JSON.stringify({
-              brandId: offerEntity.brandId,
-              locationId: locationEntity.id,
+              brandId: locationEntity.brandId,
+              offerId: offerEntity.id,
             }),
           });
 

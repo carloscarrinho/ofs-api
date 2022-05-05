@@ -32,16 +32,16 @@ const makeController = ({
   return new LinkLocationController(validation, getLocation, linkLocation);
 };
 
-const makeRequest = (data?: object): HttpRequest => ({
+const makeRequest = (data?: Partial<HttpRequest>): HttpRequest => ({
   header: {
     "Content-Type": "application/json",
   },
   params: {
-    offerId: generateOfferEntity().id,
+    locationId: locationEntity.id,
   },
   body: {
+    offerId: generateOfferEntity().id,
     brandId: locationEntity.brandId,
-    locationId: locationEntity.id,
   },
   ...data,
 });
@@ -92,7 +92,7 @@ describe("Unit", () => {
         // THEN
         expect(dependencies.get).toBeCalledWith(
           request.body.brandId,
-          request.body.locationId
+          request.params.locationId
         );
         expect(dependencies.link).not.toBeCalled();
       });
@@ -147,9 +147,9 @@ describe("Unit", () => {
 
         // THEN
         expect(dependencies.link).toBeCalledWith({
-          offerId: request.params.offerId,
+          locationId: request.params.locationId,
+          offerId: request.body.offerId,
           brandId: request.body.brandId,
-          locationId: request.body.locationId,
         });
       });
 

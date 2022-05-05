@@ -24,8 +24,8 @@ export class LinkLocationController implements IController {
     });
     if (error) return badRequest(error);
 
-    const { offerId } = request.params;
-    const { brandId, locationId } = request.body;
+    const { locationId } = request.params;
+    const { brandId, offerId } = request.body;
 
     try {
       const location = await this.getLocation.get(brandId, locationId);
