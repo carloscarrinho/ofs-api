@@ -1,5 +1,5 @@
 import { v4 as uuid } from "uuid";
-import { DynamoDB, Location } from "aws-sdk";
+import { DynamoDB } from "aws-sdk";
 import { ILocation, ILocationModel } from "../../../../domain/entities/ilocation";
 import { ILocationRepository } from "./ilocation-repository";
 import { DBIndexPrefixes } from "../../enums/db-index-prefixes";
@@ -55,5 +55,25 @@ export class DynamoLocationRepository implements ILocationRepository {
       hasOffer: record.Item.hasOffer.BOOL,
       createdAt: record.Item.createdAt.S,
     }
+  }
+
+  async linkOffer(brandId: string, locationId: string): Promise<boolean> {
+    await this.client
+      .transactWriteItems({ TransactItems: [{
+        Update: {
+          TableName: this.settings.tableName,
+          Key: {
+            pk: { S: `${DBIndexPrefixes.BRAND}${brandId}` },
+            sk: { S: `${DBIndexPrefixes.LOCATION}${locationId}` },
+          },
+          ConditionExpression: "attribute_exists(pk)",
+          UpdateExpression: "SET #hasOffer = :hoffer",
+          ExpressionAttributeNames: { "#hasOffer": "hasOffer" },
+          ExpressionAttributeValues: { ":hoffer": { BOOL: true } },
+        },
+      }] })
+      .promise();
+    
+    return true;
   }
 }

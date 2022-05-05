@@ -208,5 +208,84 @@ describe("Integration", () => {
         expect(result.hasOffer).toStrictEqual(locationEntity.hasOffer);
       });
     });
+
+    describe("DynamoLocationRepository.linkOffer()", () => {
+      it("Should throw an error if DynamoDB throws", async () => {
+        // Given
+        const locationRepository = makeDynamoLocationRepository();
+        // forcing an error because the table does not exists.
+        const tables = await dynamoDb.listTables().promise();
+        const foundTable = tables.TableNames?.some((name: string) =>
+          [process.env.TABLE_NAME].includes(name)
+        );
+        if (foundTable) {
+          await dynamoDb
+            .deleteTable({ TableName: process.env.TABLE_NAME })
+            .promise();
+        }
+
+        // When
+        const result = locationRepository.linkOffer(
+          locationEntity.brandId,
+          locationEntity.id
+        );
+
+        // Then
+        await expect(result).rejects.toThrow();
+      });
+
+      it("Should return TRUE if location was updated successfully", async () => {
+        // Given
+        const dynamoClient = new DocumentClient({
+          endpoint: process.env.TABLE_ENDPOINT,
+        });
+
+        const locationRepository = makeDynamoLocationRepository();
+
+        // storing brand
+        await dynamoClient
+          .put({
+            TableName: process.env.TABLE_NAME,
+            Item: {
+              ...locationEntity,
+              pk: `${DBIndexPrefixes.BRAND}${locationEntity.brandId}`,
+              sk: `${DBIndexPrefixes.BRAND}${locationEntity.brandId}`,
+            },
+          })
+          .promise();
+        
+          // storing location
+        await dynamoClient
+          .put({
+            TableName: process.env.TABLE_NAME,
+            Item: {
+              ...generateLocationEntity(),
+              pk: `${DBIndexPrefixes.BRAND}${locationEntity.brandId}`,
+              sk: `${DBIndexPrefixes.LOCATION}${locationEntity.id}`,
+            },
+          })
+          .promise();
+
+        // When
+        const result = await locationRepository.linkOffer(
+          locationEntity.brandId, 
+          locationEntity.id
+        );
+        
+        const params = {
+          TableName: process.env.TABLE_NAME,
+          Key: {
+            pk: `${DBIndexPrefixes.BRAND}${locationEntity.brandId}`,
+            sk: `${DBIndexPrefixes.LOCATION}${locationEntity.id}`,
+          },
+        };
+
+        const record = await dynamoClient.get(params).promise();
+        
+        // Then
+        expect(result).toBe(true);
+        expect(record.Item.hasOffer).toBe(true);
+      });
+    });
   });
 });
