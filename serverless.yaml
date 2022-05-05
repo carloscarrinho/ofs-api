@@ -17,7 +17,7 @@ plugins:
 
 functions:
   getBrand:
-    handler: src/presentation/handler.getBrand
+    handler: src/handler.getBrand
     name: get-brand
     memorySize: 128 # mb
     timeout: 5 # seconds
@@ -31,7 +31,7 @@ functions:
           - "dynamodb:GetItem"
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.tableName}
   addBrand:
-    handler: src/presentation/handler.addBrand
+    handler: src/handler.addBrand
     name: add-brand
     memorySize: 128 # mb
     timeout: 5 # seconds
@@ -45,7 +45,7 @@ functions:
           - "dynamodb:PutItem"
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.tableName}
   addOffer:
-    handler: src/presentation/handler.addOffer
+    handler: src/handler.addOffer
     name: add-offer
     memorySize: 128 # mb
     timeout: 5 # seconds
@@ -60,7 +60,7 @@ functions:
           - "dynamodb:PutItem"
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.tableName}
   addLocation:
-    handler: src/presentation/handler.addLocation
+    handler: src/handler.addLocation
     name: add-location
     memorySize: 128 # mb
     timeout: 5 # seconds
@@ -73,6 +73,36 @@ functions:
         Action:
           - "dynamodb:GetItem"
           - "dynamodb:PutItem"
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.tableName}
+  getLocation:
+    handler: src/handler.getLocation
+    name: get-location
+    memorySize: 128 # mb
+    timeout: 5 # seconds
+    events:
+      - http:
+          path: locations/{locationId}
+          method: GET
+    iamRoleStatements:
+      - Effect: "Allow"
+        Action:
+          - "dynamodb:GetItem"
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.tableName}
+  linkLocation:
+    handler: src/handler.linkLocation
+    name: link-location
+    memorySize: 128 # mb
+    timeout: 5 # seconds
+    events:
+      - http:
+          path: offers/link/{locationId}
+          method: PATCH
+    iamRoleStatements:
+      - Effect: "Allow"
+        Action:
+          - dynamodb:GetItem
+          - dynamodb:PutItem
+          - dynamodb:UpdateItem
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.tableName}
 
 resources:
