@@ -7,13 +7,13 @@ import {
   serverError,
 } from "../../helpers/http-helper";
 import { IValidation } from "../../validators/ivalidation";
-import { IGetBrand } from "../../../application/use-cases/brand/iget-brand";
 import { ILinkLocation } from "../../../application/use-cases/offer/ilink-location";
+import { IGetLocation } from "../../../application/use-cases/location/iget-location";
 
 export class LinkLocationController implements IController {
   constructor(
     private readonly validation: IValidation,
-    private readonly getBrand: IGetBrand,
+    private readonly getLocation: IGetLocation,
     private readonly linkLocation: ILinkLocation
   ) {}
 
@@ -28,8 +28,8 @@ export class LinkLocationController implements IController {
     const { brandId, locationId } = request.body;
 
     try {
-      const brand = await this.getBrand.get(brandId);
-      if (!brand) return notFound(brandId);
+      const location = await this.getLocation.get(brandId, locationId);
+      if (!location) return notFound(locationId);
 
       const result = await this.linkLocation.link({
         brandId,

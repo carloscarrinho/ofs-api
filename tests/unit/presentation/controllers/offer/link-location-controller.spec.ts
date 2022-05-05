@@ -2,8 +2,11 @@ import { LinkLocationController } from "../../../../../src/presentation/controll
 import { IValidation } from "../../../../../src/presentation/validators/ivalidation";
 import { HttpRequest } from "../../../../../src/presentation/protocols/http";
 import { ILinkLocation } from "../../../../../src/application/use-cases/offer/ilink-location";
-import { IGetBrand } from "../../../../../src/application/use-cases/brand/iget-brand";
-import { generateOfferEntity, generateOfferModel } from "../../../../fixtures/offer/offer-fixture";
+import { generateLocationEntity } from "../../../../fixtures/location/location-fixture";
+import { generateOfferEntity } from "../../../../fixtures/offer/offer-fixture";
+import { IGetLocation } from "../../../../../src/application/use-cases/location/iget-location";
+
+const locationEntity = generateLocationEntity();
 
 const makeController = ({
   validate,
@@ -18,22 +21,15 @@ const makeController = ({
     validate: validate ?? jest.fn().mockReturnValueOnce(null),
   } as unknown as IValidation;
 
-  const getBrand = {
-    get: get ?? jest.fn().mockReturnValueOnce({ 
-      id: "some-id", 
-      name: "any-name",
-      createdAt: "2022-04-29T10:00:00"
-    }),
-  } as unknown as IGetBrand;
+  const getLocation = {
+    get: get ?? jest.fn().mockReturnValueOnce(locationEntity),
+  } as unknown as IGetLocation;
 
   const linkLocation = {
-    link:
-      link ?? jest.fn().mockResolvedValue({ 
-        ...generateOfferEntity(),
-     }),
+    link: link ?? jest.fn().mockResolvedValue(true),
   } as unknown as ILinkLocation;
   
-  return new LinkLocationController(validation, getBrand, linkLocation);
+  return new LinkLocationController(validation, getLocation, linkLocation);
 };
 
 const makeRequest = (data?: object): HttpRequest => ({
@@ -41,11 +37,11 @@ const makeRequest = (data?: object): HttpRequest => ({
     "Content-Type": "application/json",
   },
   params: {
-    "offerId": "any-offer-id",
+    offerId: generateOfferEntity().id,
   },
   body: {
-    "brandId": "any-brand-id",
-    "locationId": "any-location-id",
+    brandId: locationEntity.brandId,
+    locationId: locationEntity.id,
   },
   ...data,
 });
@@ -84,7 +80,7 @@ describe("Unit", () => {
         expect(response.statusCode).toStrictEqual(400);
       });
 
-      it("Should call GetBrand with brand id", async () => {
+      it("Should call GetLocation with brand and location ids", async () => {
         // GIVEN
         const dependencies = { get: jest.fn(), link: jest.fn() };
         const linkLocationController = makeController(dependencies);
@@ -94,11 +90,14 @@ describe("Unit", () => {
         linkLocationController.handle(request);
 
         // THEN
-        expect(dependencies.get).toBeCalledWith(request.body.brandId);
+        expect(dependencies.get).toBeCalledWith(
+          request.body.brandId,
+          request.body.locationId
+        );
         expect(dependencies.link).not.toBeCalled();
       });
 
-      it("Should return 404 if brand id is invalid", async () => {
+      it("Should return 404 if GetLocation returns null", async () => {
         // Given
         const dependencies = {
           get: jest.fn().mockResolvedValueOnce(null),
@@ -115,7 +114,7 @@ describe("Unit", () => {
         expect(dependencies.link).not.toBeCalled();
       });
 
-      it("Should return 500 if GetBrand throws an error", async () => {
+      it("Should return 500 if GetLocation throws an error", async () => {
         // GIVEN
         const error = new Error();
         error.stack = "any_stack";

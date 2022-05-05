@@ -4,7 +4,9 @@ import { DBIndexPrefixes } from "../../../../../../src/infrastructure/db/enums/d
 import { IOfferRepository } from "../../../../../../src/infrastructure/db/repositories/offer/ioffer-repository";
 import { DynamoOfferRepository } from "../../../../../../src/infrastructure/db/repositories/offer/dynamo-offer-repository";
 import { generateOfferEntity, generateOfferModel } from "../../../../../fixtures/offer/offer-fixture";
+import { generateBrandEntity } from "../../../../../fixtures/brand/brand-fixture";
 import { generateLinkLocationModel } from "../../../../../fixtures/offer/link-location-fixture";
+import { generateLocationEntity } from "../../../../../fixtures/location/location-fixture";
 
 const dynamoDb = new DynamoDB({ endpoint: process.env.TABLE_ENDPOINT });
 
@@ -154,9 +156,35 @@ describe("Integration", () => {
           endpoint: process.env.TABLE_ENDPOINT,
         });
         const offerRepository = makeDynamoOfferRepository();
-        const offerModel = generateOfferModel();
-        const offerEntity = generateOfferEntity(offerModel);
+        const brandEntity = generateBrandEntity();
+        const locationEntity = generateLocationEntity({ brandId: brandEntity.id });
+        const offerEntity = generateOfferEntity({ brandId: brandEntity.id });
         const linkLocationModel = generateLinkLocationModel();
+
+        // storing brand
+        await dynamoClient
+          .put({
+            TableName: process.env.TABLE_NAME,
+            Item: {
+              ...locationEntity,
+              pk: `${DBIndexPrefixes.BRAND}${brandEntity.id}`,
+              sk: `${DBIndexPrefixes.BRAND}${brandEntity.id}`,
+            },
+          })
+          .promise();
+        
+          // storing location
+        await dynamoClient
+          .put({
+            TableName: process.env.TABLE_NAME,
+            Item: {
+              ...generateLocationEntity(),
+              pk: `${DBIndexPrefixes.BRAND}${locationEntity.brandId}`,
+              sk: `${DBIndexPrefixes.LOCATION}${locationEntity.id}`,
+            },
+          })
+          .promise();
+
         // storing offer
         await dynamoClient
           .put({
