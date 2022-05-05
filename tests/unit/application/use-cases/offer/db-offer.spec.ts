@@ -1,20 +1,24 @@
 import { DbOffer } from "../../../../../src/application/use-cases/offer/db-offer";
 import { IOfferRepository } from "../../../../../src/infrastructure/db/repositories/offer/ioffer-repository";
 import { generateOfferModel, generateOfferEntity } from "../../../../fixtures/offer/offer-fixture";
+import { generateBrandEntity } from "../../../../fixtures/brand/brand-fixture";
 import { generateLinkLocationModel } from "../../../../fixtures/offer/link-location-fixture";
 import { ILocationRepository } from "../../../../../src/infrastructure/db/repositories/location/ilocation-repository";
 
 const makeDbOffer = ({
   store,
+  find,
   linkLocation,
   linkOffer,
 }: {
   store?: Function;
+  find?: Function;
   linkLocation?: Function;
   linkOffer?: Function;
 }): DbOffer => {
   const offerRepository = {
     store: store ?? jest.fn().mockResolvedValueOnce(generateOfferEntity()),
+    find: find ?? jest.fn().mockResolvedValueOnce(generateOfferEntity()),
     linkLocation: linkLocation ?? jest.fn().mockResolvedValueOnce(true),
   } as unknown as IOfferRepository;
   
@@ -65,6 +69,82 @@ describe("Unit", () => {
 
         // Then
         expect(brand).toStrictEqual(generateOfferEntity());
+      });
+    });
+
+    describe('DbOffer.get()', () => {
+      it('Should call OfferRepository with brand and offer ids', async () => {
+        // GIVEN
+        const brandEntity = generateBrandEntity();
+        const offerEntity = generateOfferEntity({ brandId: brandEntity.id });
+        const dependencies = { find: jest.fn() };
+        const dbOffer = makeDbOffer(dependencies);
+
+        // WHEN
+        await dbOffer.get(
+          brandEntity.id,
+          offerEntity.id
+        );
+
+        // THEN
+        expect(dependencies.find).toBeCalledWith(
+          brandEntity.id,
+          offerEntity.id
+        );
+      });
+
+      it("Should throw an error if OfferRepository throws", async () => {
+        // Given
+        const brandEntity = generateBrandEntity();
+        const offerEntity = generateOfferEntity({ brandId: brandEntity.id });
+        const dependencies = {
+          find: jest.fn().mockImplementationOnce(() => {
+            throw new Error();
+          }),
+        };
+        const DbOffer = makeDbOffer(dependencies);
+
+        // When
+        const offer = DbOffer.get(
+          brandEntity.id,
+          offerEntity.id
+        );
+
+        // Then
+        await expect(offer).rejects.toThrow();
+      });
+
+      it("Should return null if offer was not found", async () => {
+        // Given
+        const brandEntity = generateBrandEntity();
+        const offerEntity = generateOfferEntity({ brandId: brandEntity.id });
+        const dependencies = { find: jest.fn().mockResolvedValueOnce(null) };
+        const DbOffer = makeDbOffer(dependencies);
+
+        // When
+        const offer = await DbOffer.get(
+          brandEntity.id,
+          offerEntity.id
+        );
+
+        // Then
+        expect(offer).toBeFalsy();
+      });
+      
+      it("Should return null if offer was not found", async () => {
+        // Given
+        const brandEntity = generateBrandEntity();
+        const offerEntity = generateOfferEntity({ brandId: brandEntity.id });
+        const DbOffer = makeDbOffer({});
+
+        // When
+        const offer = await DbOffer.get(
+          brandEntity.id,
+          offerEntity.id
+        );
+
+        // Then
+        expect(offer).toEqual(offerEntity);
       });
     });
 
