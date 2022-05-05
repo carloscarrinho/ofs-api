@@ -6,16 +6,12 @@ export const generateOfferModel = (data?: Partial<IOfferModel>): IOfferModel => 
   name: "any-offer-name",
   startDate: "2022-04-29T20:41:54.630Z",
   endDate: "2022-05-29T20:41:54.630Z",
-  type: {
-    value: "any-value",
-    name: "any-name",
-  },
   ...data,
 });
 
 export const generateOfferEntity = (data?: Partial<IOffer>): IOffer => ({
   id: "any-offer-id",
   locationsTotal: 0,
-  status: OfferStatuses.CREATED,
+  createdAt: "2022-05-29T20:41:54.630Z",
   ...generateOfferModel()
 });
