@@ -7,6 +7,7 @@ import {
   addLocationControllerFactory,
   linkLocationControllerFactory,
   getLocationControllerFactory,
+  getOfferControllerFactory,
 } from "./main/factories";
 
 export const getBrand = async (event: APIGatewayEvent) => {
@@ -29,6 +30,15 @@ export const addBrand = async (event: APIGatewayEvent) => {
 
 export const addOffer = async (event: APIGatewayEvent) => {
   const response = await apiGatewayAdapter(event, addOfferControllerFactory());
+
+  return {
+    statusCode: response.statusCode,
+    body: JSON.stringify(response.body),
+  };
+};
+
+export const getOffer = async (event: APIGatewayEvent) => {
+  const response = await apiGatewayAdapter(event, getOfferControllerFactory());
 
   return {
     statusCode: response.statusCode,

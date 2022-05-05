@@ -59,6 +59,20 @@ functions:
           - "dynamodb:GetItem"
           - "dynamodb:PutItem"
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.tableName}
+  getOffer:
+    handler: src/handler.getOffer
+    name: get-offer
+    memorySize: 128 # mb
+    timeout: 5 # seconds
+    events:
+      - http:
+          path: offers/{offerId}
+          method: GET
+    iamRoleStatements:
+      - Effect: "Allow"
+        Action:
+          - "dynamodb:GetItem"
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.tableName}
   addLocation:
     handler: src/handler.addLocation
     name: add-location
