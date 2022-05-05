@@ -35,13 +35,33 @@ export class DynamoOfferRepository implements IOfferRepository {
         startDate: { S: offer.startDate },
         endDate: { S: offer.endDate },
         locationsTotal: { N: offer.locationsTotal.toString() },
-        status: { S: offer.status },
-        type: { S: offer.type.toString() },
         createdAt: { S: offer.createdAt },
       },
     }).promise();
 
     return offer;
+  }
+
+  async find(brandId: string, offerId: string): Promise<IOffer> {
+    const record = await this.client.getItem({
+      TableName: this.settings.tableName,
+      Key: {
+        pk: { S: `${DBIndexPrefixes.BRAND}${brandId}`},
+        sk: { S: `${DBIndexPrefixes.OFFER}${offerId}`}
+      }
+    }).promise();
+
+    if(!record.Item) return null;
+    
+    return {
+      id: record.Item.id.S,
+      brandId: record.Item.brandId.S,
+      name: record.Item.name.S,
+      locationsTotal: parseInt(record.Item.locationsTotal.N),
+      startDate: record.Item.startDate.S,
+      endDate: record.Item.endDate.S,
+      createdAt: record.Item.createdAt.S,
+    }
   }
 
   async linkLocation(linkLocationModel: ILinkLocationModel): Promise<boolean> {

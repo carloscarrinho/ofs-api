@@ -8,6 +8,7 @@ import { generateBrandEntity } from "../../../../../fixtures/brand/brand-fixture
 import { generateLinkLocationModel } from "../../../../../fixtures/offer/link-location-fixture";
 import { generateLocationEntity } from "../../../../../fixtures/location/location-fixture";
 
+const offerEntity = generateOfferEntity();
 const dynamoDb = new DynamoDB({ endpoint: process.env.TABLE_ENDPOINT });
 
 const prepareEnvironment = async () => {
@@ -125,6 +126,74 @@ describe("Integration", () => {
         expect(result.id).toStrictEqual(offerEntity.id);
         expect(result.name).toStrictEqual(offerEntity.name);
         expect(record.Item.name).toEqual(offerEntity.name);
+      });
+    });
+
+    describe("DynamoOfferRepository.find()", () => {
+      it("Should throw an error if DynamoDB throws", async () => {
+        // Given
+        const offerRepository = makeDynamoOfferRepository();
+        // forcing an error because the table does not exists.
+        const tables = await dynamoDb.listTables().promise();
+        const foundTable = tables.TableNames?.some((name: string) =>
+          [process.env.TABLE_NAME].includes(name)
+        );
+        if (foundTable) {
+          await dynamoDb
+            .deleteTable({ TableName: process.env.TABLE_NAME })
+            .promise();
+        }
+
+        // When
+        const result = offerRepository.find(
+          offerEntity.brandId,
+          offerEntity.id
+        );
+
+        // Then
+        await expect(result).rejects.toThrow();
+      });
+
+      it("Should return the offer data if offer was found successfully", async () => {
+        // Given
+        const dynamoClient = new DocumentClient({
+          endpoint: process.env.TABLE_ENDPOINT,
+        });
+
+        const offerRepository = makeDynamoOfferRepository();
+
+        // storing brand
+        await dynamoClient
+          .put({
+            TableName: process.env.TABLE_NAME,
+            Item: {
+              ...offerEntity,
+              pk: `${DBIndexPrefixes.BRAND}${offerEntity.brandId}`,
+              sk: `${DBIndexPrefixes.BRAND}${offerEntity.brandId}`,
+            },
+          })
+          .promise();
+        
+          // storing offer
+        await dynamoClient
+          .put({
+            TableName: process.env.TABLE_NAME,
+            Item: {
+              ...offerEntity,
+              pk: `${DBIndexPrefixes.BRAND}${offerEntity.brandId}`,
+              sk: `${DBIndexPrefixes.OFFER}${offerEntity.id}`,
+            },
+          })
+          .promise();
+
+        // When
+        const result = await offerRepository.find(
+          offerEntity.brandId, 
+          offerEntity.id
+        );
+
+        // Then
+        expect(result.id).toStrictEqual(offerEntity.id);
       });
     });
     
