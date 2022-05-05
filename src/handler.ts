@@ -1,11 +1,13 @@
 import { APIGatewayEvent } from "aws-lambda";
-import { apiGatewayAdapter } from "../main/adapters/api-gateway-adapter";
+import { apiGatewayAdapter } from "./main/adapters/api-gateway-adapter";
 import {
   addBrandControllerFactory,
   getBrandControllerFactory,
   addOfferControllerFactory,
   addLocationControllerFactory,
-} from "../main/factories";
+  linkLocationControllerFactory,
+  getLocationControllerFactory,
+} from "./main/factories";
 
 export const getBrand = async (event: APIGatewayEvent) => {
   const response = await apiGatewayAdapter(event, getBrandControllerFactory());
@@ -38,6 +40,27 @@ export const addLocation = async (event: APIGatewayEvent) => {
   const response = await apiGatewayAdapter(
     event,
     addLocationControllerFactory()
+  );
+
+  return {
+    statusCode: response.statusCode,
+    body: JSON.stringify(response.body),
+  };
+};
+
+export const getLocation = async (event: APIGatewayEvent) => {
+  const response = await apiGatewayAdapter(event, getLocationControllerFactory());
+
+  return {
+    statusCode: response.statusCode,
+    body: JSON.stringify(response.body),
+  };
+};
+
+export const linkLocation = async (event: APIGatewayEvent) => {
+  const response = await apiGatewayAdapter(
+    event,
+    linkLocationControllerFactory()
   );
 
   return {
