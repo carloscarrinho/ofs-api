@@ -53,7 +53,7 @@ export class DynamoLocationRepository implements ILocationRepository {
       brandId: record.Item.brandId.S,
       address: record.Item.address.S,
       hasOffer: record.Item.hasOffer.BOOL,
-      createdAt: record.Item.address.S,
+      createdAt: record.Item.createdAt.S,
     }
   }
 }

@@ -7,6 +7,7 @@ import {
   addOfferControllerFactory,
   addLocationControllerFactory,
   getBrandControllerFactory,
+  getLocationControllerFactory,
   linkLocationControllerFactory,
 } from "../../../../src/main/factories";
 import { DBIndexPrefixes } from "../../../../src/infrastructure/db/enums/db-index-prefixes";
@@ -294,6 +295,55 @@ describe("System", () => {
           // THEN
           expect(response.statusCode).toEqual(200);
           expect(response.body.location.address).toEqual(locationModel.address);
+        });
+
+        it("Should return 200 and location data if get-location returns OK", async () => {
+          // GIVEN
+          const locationEntity = generateLocationEntity({
+            brandId: defaultBrandData.id
+          });
+          
+          const event = makeEvent({
+            headers: { brandId: defaultBrandData.id },
+            pathParameters: { locationId: locationEntity.id },
+          });
+
+          // storing the brand
+          const dynamoClient = new DocumentClient({
+            endpoint: process.env.TABLE_ENDPOINT,
+          });
+          await dynamoClient
+            .put({
+              TableName: process.env.TABLE_NAME,
+              Item: {
+                ...defaultBrandData,
+                pk: `${DBIndexPrefixes.BRAND}${defaultBrandData.id}`,
+                sk: `${DBIndexPrefixes.BRAND}${defaultBrandData.id}`,
+              },
+            })
+            .promise();
+
+          // storing the location
+          await dynamoClient
+            .put({
+              TableName: process.env.TABLE_NAME,
+              Item: {
+                ...locationEntity,
+                pk: `${DBIndexPrefixes.BRAND}${locationEntity.brandId}`,
+                sk: `${DBIndexPrefixes.LOCATION}${locationEntity.id}`,
+              },
+            })
+            .promise();
+
+          // WHEN
+          const response = await apiGatewayAdapter(
+            event,
+            getLocationControllerFactory()
+          );
+          
+          // THEN
+          expect(response.statusCode).toEqual(200);
+          expect(response.body.location).toEqual(locationEntity);
         });
       });
     });
