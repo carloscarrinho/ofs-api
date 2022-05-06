@@ -1,16 +1,57 @@
 # Fidel Coding Challenge Solution
 
+## How to run the application
+### Step 1 - Create and configure a programatic user
+
+It will be necessary to configure a programatic user for running the app.
+
+![Add user step 1](./assets/diagrams/iam-add-user.png);
+
+![Add user step 2](./assets/diagrams/iam-add-user-2.png);
+
+Then, define the following policies to the user created:
+
+![User policies](./assets/diagrams/iam-add-user-policies.png)
+
+At the end of this process, AWS Console will provide the credentials `ACCESS_KEY` and `SECRET_KEY`.
+
+Using the AWS CLI, run the following on the terminal and set the keys:
+
+```bash
+aws configure
+```
+
+### Step 2 - Install Serverless Framework
+
+```bash
+npm install -g serverless
+```
+
+### Step 3 - Deploy the app
+
+After the user has been set, the application can be deployed by using: 
+
+```bash
+serverless deploy
+```
+
 ## Application Architecture
 The application was designed taking in consideration Domain Driven Design concepts. So it was developed by the recommended layered architecture from the DDD book by Eric Evans.
 
-- Presentation:
-- Application:
-- Domain:
-- Infrastructure:
+- **Main**: Responsible for assembling the classes respecting the application contracts and adapt the app entrypoint;
+- **Presentation**: Responsible for handling the request from the client and do the basic validations;
+- **Application**: Responsible for applying the use cases related to each access pattern;
+- **Domain**: Responsible for the business rule, the concept of each entity of the system;
+- **Infrastructure**: Responsible for connecting the support tools like database and specific libraries.
 
 ![architecture](./assets/diagrams/architecture.png)
 
 ## Automated Tests
+
+> **note**: for running integration and system tests is necessary to up the containers, by the following commands:
+> - At first time, move to project root and run: ```docker-compose up -d```;
+> - Then, the environment can be accessed by: ```docker-compose run --rm application sh```.
+
 Jest was the chosen tool for the automated tests. They were organized by following two concepts:
 
 - Application's folder structure, which was, as mentioned before, inspired on DDD recommendations;
@@ -47,36 +88,81 @@ Main scripts:
 > - Even having only one big table, to separate each entity into different repositories for performing DB actions;
 
 **2. How did you design your data model?**
+
 I followed 3 steps:
 
 1. **domain modeling** :: Design the ERM (Entity Relationship Model) as if the database were relational;
+
+![Entity-Relationship-Model](./assets/diagrams/erm.png)
+
 2. **access patterns** :: Answer _what DynamoDB should answer about my data model?_
+
+Some of the access patterns discovered and its possible queries:
+
+| access pattern                | query                                                   | Indexes         |
+|:-----------------------------:|:-------------------------------------------------------:|:---------------:|
+| get brand                     | pk = "brand#{id}" AND sk = "brand#{id}"                 |                 |
+| get offer                     | pk = "brand#{id}" AND sk = "offer#{id}"                 |                 |
+| get location                  | pk = "brand#{id}" AND sk = "location#{id}"              |                 |
+| get offers by status          | pk = "status" AND begins_with(sk, "offer#")             | gsi1-pk,gsi1-sk |
+| get offers which has location | pk = "locationsTotal" AND begins_with(sk, offer#)       | gsi2-pk,gsi2-sk |
+| get locations which has offer | pk = "hasOffer" <> false AND begins_with(sk, location#) | gsi3-pk,gsi3-sk |
+
 3. **define table and its indexes** :: By answering the step 2 questions.
+
+![Data Model](./assets/diagrams/data-model.png)
 
 **3. What are the pros and cons of Dynamodb for an API request?**
 
 - Pros:
-  - Ease of Use for basic CRUD operations;
-  - Speed;
+  - Low latency (Speed);
+  - Flexible queries by the use of indexes.
 
 - Cons:
   - Complex data modeling for domains with many entities;
-  - Lacking of basic features (example: DynamoDB does not have INSERT method, so the developers have to be aware to not overrite data).
-
-### Data Model
 
 
 ## Part II - Lambda Functions
 
+### Questions
 
-| method | endpoint                | description      | headers  | body             |
-|:------:|:-----------------------:|:----------------:|:--------:|:----------------:|
-| POST   | /brands                 | Adds a brand     |    -     |                  |
-| GET    | /brands/:brand_id       | Gets a brand     |    -     |                  |
-| POST   | /offers                 | Adds an offer    |          |                  |
-| GET    | /offers/:offer_id       | Gets an offer    |          |                  |
-| POST   | /locations              | Adds a location  |          |                  |
-| GET    | /locations/:location_id | Gets a location  |          |                  |
+**1. Have you used Functions as a Service (FaaS) like AWS Lambda in the past?**
+
+- If yes, how did this task compare to what you did?
+
+> Yes, I used lambda before, and actually it was a similar the approach. The main difference was in the context the endpoints (or services) were pretty small, just for specific purposes, not an entire API with more than two endpoints. 
+
+**2. What are the pros and cons of functions as a service for API requests?**
+
+- Pros
+  - Easy setup - with simple and few steps we have a great infrastructure for receiving requests, with give us some nice features (such as DDos protection);
+  - Cost Reduction - a "traditional" web application, with code hosted on a server (such as Digital Ocean, Heroku or even AWS), we have to pay for the server usage regardless of whether or not the API is actually using it.
+
+- Cons:
+  - Limits - Lambda can only run for 15 minutes at max, the max memory allocated is 3GB and the maximum payload size is 256 mb. According the purpose of the system, this can be a bottleneck.
+
+
+**3. How do you write operations within a concurrent architecture (parallel requests, series of async actions, async mapReduce patterns, etc.)?**
+
+Sorry, this is something that I need to study more to talk about.
+
+### Endpoints
+| method | endpoint                  | description      | headers  | body                              |
+|:------:|:-------------------------:|:----------------:|:--------:|:---------------------------------:|
+| POST   | /brands                   | Adds a brand     |    -     | name                              |
+| GET    | /brands/:brand_id         | Gets a brand     |    -     |                                   |
+| POST   | /offers                   | Adds an offer    |    -     | brandId, name, startDate, endDate |
+| GET    | /offers/:offer_id         | Gets an offer    | brandId  |                                   |
+| POST   | /locations                | Adds a location  |    -     | brandId, address                  |
+| GET    | /locations/:location_id   | Gets a location  | brandId  |                                   |
+| PATCH  | /offers/link/:location_id | Gets a location  |    -     | brandId, offerId                  |
 
 ## Final Considerations
-I'm glad to present this challenge solution. I hope this can show you some of my ideas about software development.
+
+I'm glad to present this challenge solution. I struggled a bit with my time available for studying and coding it, but I enjoyed the time. 
+
+I know there are several ways to improve it, but I hope this can show you some of my skills and ideas about software development.
+
+Thank you so much for the opportunity.
+
+See you soon.
