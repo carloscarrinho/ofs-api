@@ -18,8 +18,6 @@ async function createDynamoDbTable(): Promise<void> {
     AttributeDefinitions: [
       { AttributeName: "pk", AttributeType: "S" },
       { AttributeName: "sk", AttributeType: "S" },
-      { AttributeName: "gsi1pk", AttributeType: "S" },
-      { AttributeName: "gsi1sk", AttributeType: "S" },
     ],
     KeySchema: [
       { AttributeName: "pk", KeyType: "HASH" },
@@ -28,14 +26,12 @@ async function createDynamoDbTable(): Promise<void> {
     GlobalSecondaryIndexes: [
       {
         IndexName: "gsi1",
-        KeySchema: [
-          { AttributeName: "gsi1pk", KeyType: "HASH" },
-          { AttributeName: "gsi1sk", KeyType: "RANGE" },
+        KeySchema: [ 
+          { AttributeName: "sk", KeyType: "HASH" }, 
+          { AttributeName: "pk", KeyType: "RANGE" } 
         ],
         ProvisionedThroughput: { ReadCapacityUnits: 10, WriteCapacityUnits: 10 },
-        Projection: {
-          ProjectionType: "ALL",
-        },
+        Projection: { ProjectionType: "ALL" },
       },
     ],
     ProvisionedThroughput: { ReadCapacityUnits: 10, WriteCapacityUnits: 10 },
